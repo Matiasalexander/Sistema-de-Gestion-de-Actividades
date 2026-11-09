@@ -1,0 +1,25 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+*.nupkg
+*.snupkg
+TestResults/
+appsettings.Development.Local.json
+uploads/
+
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
