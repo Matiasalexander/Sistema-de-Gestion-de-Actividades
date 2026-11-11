@@ -2,7 +2,8 @@
 ## Plataforma Corporativa de Gestión de Proyectos, Actividades, Tableros y Mesa de Ayuda (Tickets + SLA)
 
 **Sistema de Gestión GA** es una plataforma web corporativa integral que unifica la experiencia de gestión de trabajo estilo *Monday.com* (proyectos, fases, actividades, subtareas, checklists, dependencias, Kanban, Gantt, calendario y carga de trabajo) con una mesa de ayuda corporativa estilo *Jira Service Management* (tickets con folio único, flujos de estado, políticas SLA con calendario laboral, pausas controladas, notas internas y vinculación de actividades técnicas).
-
+![SQL Server](https://img.shields.io/badge/SQL_Server-2022-CC2927?logo=microsoftsqlserver)
+https://img.shields.io/badge/-.NET%209-blueviolet
 ---
 
 ## 1. Estructura de la Solución
