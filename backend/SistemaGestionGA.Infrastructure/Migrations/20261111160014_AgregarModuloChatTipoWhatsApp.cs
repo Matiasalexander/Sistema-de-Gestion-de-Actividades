@@ -39,7 +39,7 @@ namespace SistemaGestionGA.Infrastructure.Migrations
                         column: x => x.ActividadActivaId,
                         principalTable: "Actividades",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
                         name: "FK_ChatGrupos_Unidades_UnidadId",
                         column: x => x.UnidadId,
@@ -105,7 +105,7 @@ namespace SistemaGestionGA.Infrastructure.Migrations
                         column: x => x.ActividadId,
                         principalTable: "Actividades",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
                         name: "FK_ChatMensajes_ChatGrupos_ChatGrupoId",
                         column: x => x.ChatGrupoId,
@@ -177,7 +177,7 @@ namespace SistemaGestionGA.Infrastructure.Migrations
                 column: "ChatGrupoId",
                 principalTable: "ChatGrupos",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.SetNull);
+                onDelete: ReferentialAction.NoAction);
         }
 
         /// <inheritdoc />

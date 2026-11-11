@@ -390,7 +390,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasOne(x => x.ActividadActiva)
             .WithMany()
             .HasForeignKey(x => x.ActividadActivaId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<ChatGrupoMiembro>()
             .HasOne(x => x.ChatGrupo)
@@ -420,7 +420,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasOne(x => x.Actividad)
             .WithMany(a => a.ChatMensajes)
             .HasForeignKey(x => x.ActividadId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<ChatMensaje>()
             .HasOne(x => x.RespondidoPorUsuario)
@@ -432,6 +432,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasOne(x => x.ChatGrupo)
             .WithMany(g => g.Actividades)
             .HasForeignKey(x => x.ChatGrupoId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }
