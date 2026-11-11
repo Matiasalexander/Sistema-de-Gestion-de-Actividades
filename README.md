@@ -6,6 +6,7 @@
 
 ![SQL Server](https://img.shields.io/badge/SQL_Server-2022-CC2927?logo=microsoftsqlserver)
 ![.NET](https://img.shields.io/badge/-.NET%209-blueviolet)
+![REACT](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)
 
 ## 1. Estructura de la Solución
 
