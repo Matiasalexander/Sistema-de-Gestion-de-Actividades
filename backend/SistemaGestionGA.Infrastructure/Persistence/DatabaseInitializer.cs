@@ -777,7 +777,7 @@ public static class DatabaseInitializer
         if (act1 != null)
         {
             grupoDemo.ActividadActivaId = act1.Id;
-            act1.ChatGrupoId = grupoDemo.Id;
+            //act1.ChatGrupoId = grupoDemo.Id;
 
             grupoDemo.Mensajes.Add(new ChatMensaje
             {
@@ -831,7 +831,20 @@ public static class DatabaseInitializer
             });
         }
 
+        //db.ChatGrupos.Add(grupoDemo);
+        //await db.SaveChangesAsync();
+
         db.ChatGrupos.Add(grupoDemo);
+
+        // Primero guardar el grupo para obtener su ID real
         await db.SaveChangesAsync();
+
+        // Después vincular la actividad con el grupo creado
+        if (act1 != null)
+        {
+            act1.ChatGrupoId = grupoDemo.Id;
+            await db.SaveChangesAsync();
+        }
+
     }
 }
