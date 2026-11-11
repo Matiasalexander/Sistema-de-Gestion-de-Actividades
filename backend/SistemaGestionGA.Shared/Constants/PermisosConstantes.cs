@@ -35,6 +35,9 @@ public static class PermisosConstantes
     public const string AuditoriaVer = "auditoria.ver";
     public const string ConfiguracionGestionar = "configuracion.gestionar";
 
+    public const string ChatVer = "chat.ver";
+    public const string ChatCrear = "chat.crear";
+
     public static IReadOnlyList<(string Codigo, string Modulo, string Accion, string Nombre, string Descripcion)> ObtenerCatalogo() =>
     [
         (ProyectosVer, "Proyectos", "Ver", "Consultar proyectos", "Permite listar y ver el detalle de proyectos dentro de las unidades autorizadas"),
@@ -68,6 +71,9 @@ public static class PermisosConstantes
         (ReportesVer, "Reportes", "Ver", "Consultar dashboard y reportes", "Permite visualizar indicadores ejecutivos y reportes operativos"),
         (ReportesExportar, "Reportes", "Exportar", "Exportar reportes CSV/Excel", "Permite descargar reportes en formato CSV y Excel"),
         (AuditoriaVer, "Seguridad", "Auditoría", "Consultar bitácora de auditoría", "Permite inspeccionar el historial de accesos y auditoría de modificaciones"),
-        (ConfiguracionGestionar, "Configuración", "Gestionar", "Administrar SLA y automatizaciones", "Permite configurar políticas SLA, calendarios y reglas de automatización")
+        (ConfiguracionGestionar, "Configuración", "Gestionar", "Administrar SLA y automatizaciones", "Permite configurar políticas SLA, calendarios y reglas de automatización"),
+
+        (ChatVer, "Chat", "Ver", "Consultar y participar en chats", "Permite participar en canales y grupos de chat tipo WhatsApp"),
+        (ChatCrear, "Chat", "Crear", "Crear grupos y administrar miembros", "Permite a los administradores crear grupos de chat e incorporar participantes")
     ];
 }

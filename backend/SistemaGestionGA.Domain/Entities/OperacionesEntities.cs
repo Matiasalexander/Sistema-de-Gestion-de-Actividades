@@ -129,6 +129,8 @@ public class Actividad
     public bool EsRecurrente { get; set; }
     public string? PatronRecurrencia { get; set; }
     public bool Archivada { get; set; }
+    public int? ChatGrupoId { get; set; }
+    public ChatGrupo? ChatGrupo { get; set; }
     public int? CreadoPorId { get; set; }
     public int? ModificadoPorId { get; set; }
     public DateTime FechaCreacionUtc { get; set; } = DateTime.UtcNow;
@@ -143,6 +145,7 @@ public class Actividad
     public ICollection<TicketActividad> TicketActividades { get; set; } = new List<TicketActividad>();
     public ICollection<Comentario> Comentarios { get; set; } = new List<Comentario>();
     public ICollection<Adjunto> Adjuntos { get; set; } = new List<Adjunto>();
+    public ICollection<ChatMensaje> ChatMensajes { get; set; } = new List<ChatMensaje>();
 }
 
 public class ActividadAsignado
@@ -400,5 +403,53 @@ public class ReglaAutomatizacion
     public int TotalEjecuciones { get; set; }
     public int TotalFallos { get; set; }
     public DateTime? UltimaEjecucionUtc { get; set; }
+    public DateTime FechaCreacionUtc { get; set; } = DateTime.UtcNow;
+}
+
+public class ChatGrupo
+{
+    public int Id { get; set; }
+    public string Nombre { get; set; } = string.Empty;
+    public string? Descripcion { get; set; }
+    public int UnidadId { get; set; }
+    public Unidad? Unidad { get; set; }
+    public int? ActividadActivaId { get; set; }
+    public Actividad? ActividadActiva { get; set; }
+    public int CreadoPorId { get; set; }
+    public Usuario? CreadoPor { get; set; }
+    public bool Activo { get; set; } = true;
+    public DateTime FechaCreacionUtc { get; set; } = DateTime.UtcNow;
+
+    public ICollection<ChatGrupoMiembro> Miembros { get; set; } = new List<ChatGrupoMiembro>();
+    public ICollection<ChatMensaje> Mensajes { get; set; } = new List<ChatMensaje>();
+    public ICollection<Actividad> Actividades { get; set; } = new List<Actividad>();
+}
+
+public class ChatGrupoMiembro
+{
+    public int ChatGrupoId { get; set; }
+    public ChatGrupo? ChatGrupo { get; set; }
+    public int UsuarioId { get; set; }
+    public Usuario? Usuario { get; set; }
+    public bool EsAdmin { get; set; }
+    public DateTime FechaUnionUtc { get; set; } = DateTime.UtcNow;
+}
+
+public class ChatMensaje
+{
+    public long Id { get; set; }
+    public int ChatGrupoId { get; set; }
+    public ChatGrupo? ChatGrupo { get; set; }
+    public int UsuarioId { get; set; }
+    public Usuario? Usuario { get; set; }
+    public int? ActividadId { get; set; }
+    public Actividad? Actividad { get; set; }
+    public string Texto { get; set; } = string.Empty;
+    public string TipoMensaje { get; set; } = "Texto"; // Texto, Sistema, PreguntaInteractiva, RespuestaInteractiva
+    public string? OpcionesInteractivasJson { get; set; }
+    public string? OpcionSeleccionada { get; set; }
+    public int? RespondidoPorUsuarioId { get; set; }
+    public Usuario? RespondidoPorUsuario { get; set; }
+    public DateTime? FechaRespuestaUtc { get; set; }
     public DateTime FechaCreacionUtc { get; set; } = DateTime.UtcNow;
 }

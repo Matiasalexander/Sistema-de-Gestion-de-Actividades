@@ -179,7 +179,9 @@ public record ActividadDto(
     IReadOnlyList<DependenciaActividadDto> Dependencias,
     IReadOnlyList<TiempoActividadDto> Tiempos,
     IReadOnlyList<ActividadHistorialDto> Historial,
-    IReadOnlyList<string> TicketsVinculadosFolios);
+    IReadOnlyList<string> TicketsVinculadosFolios,
+    int? ChatGrupoId = null,
+    string? ChatGrupoNombre = null);
 
 public record GuardarActividadDto(
     int? ProyectoId,

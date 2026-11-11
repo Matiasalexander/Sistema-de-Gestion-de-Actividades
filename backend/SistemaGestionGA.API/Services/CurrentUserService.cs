@@ -19,6 +19,10 @@ public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICur
 
     public string? NombreUsuario => User?.Identity?.Name;
 
+    public string? NombreCompleto => User?.FindFirstValue("nombre_completo") ?? NombreUsuario;
+
+    public string? Email => User?.FindFirstValue(ClaimTypes.Email);
+
     public bool Autenticado => User?.Identity?.IsAuthenticated == true;
 
     public bool AccesoGlobalUnidades =>

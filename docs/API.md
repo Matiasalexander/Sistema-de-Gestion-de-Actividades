@@ -45,3 +45,16 @@ La documentación interactiva OpenAPI se encuentra expuesta en `/swagger` (`http
 - `GET /api/dashboard`
 - `GET /api/reportes/exportar?tipo={actividades|tickets|productividad}`
 - `GET /api/auditoria`
+
+## 5. Chat WhatsApp Corporativo y Seguimiento Interactivo (`/api/chat`)
+- `GET /api/chat/grupos`: Consulta canales y grupos accesibles según unidad, con resumen de actividad activa y último mensaje.
+- `GET /api/chat/grupos/{id}`: Detalle del grupo y lista de participantes.
+- `POST /api/chat/grupos`: Creación administrativa de nuevo grupo con participantes iniciales.
+- `POST /api/chat/grupos/{id}/miembros`: Adición de usuarios al grupo.
+- `DELETE /api/chat/grupos/{id}/miembros/{usuarioId}`: Remoción de un integrante.
+- `GET /api/chat/grupos/{id}/mensajes`: Timeline de mensajes del grupo.
+- `GET /api/chat/actividades/{actividadId}/mensajes`: Timeline de mensajes vinculados a una actividad específica.
+- `POST /api/chat/grupos/{id}/mensajes`: Envío de mensaje. Si no hay actividad abierta, crea automáticamente una nueva `Actividad`; si ya existe, agrega entrada a `ActividadHistorial`. Difunde por SignalR `NuevoMensajeChat`.
+- `POST /api/chat/grupos/{id}/enviar-pregunta-resolucion`: Dispara una tarjeta interactiva con botones de decisión para el cliente (`¿Quedó resuelto?`).
+- `POST /api/chat/grupos/{id}/mensajes/{mensajeId}/responder-opcion`: Procesa la elección del cliente. Si elige resolver, marca la `Actividad` como `COMPLETADA` al 100%, desvincula la actividad activa del grupo y emite mensaje de confirmación por SignalR.
+- `POST /api/chat/actividades/{actividadId}/iniciar-chat`: Inicia o conecta un canal de WhatsApp para una actividad existente.
