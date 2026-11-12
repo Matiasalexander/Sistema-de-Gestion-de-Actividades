@@ -40,6 +40,7 @@ export const ChatPage: React.FC = () => {
   const [textoMensaje, setTextoMensaje] = useState('');
   const [modalNuevoGrupo, setModalNuevoGrupo] = useState(false);
   const [modalMiembros, setModalMiembros] = useState(false);
+  const [grupoParaEliminar, setGrupoParaEliminar] = useState<ChatGrupoItem | null>(null);
 
   // Formulario nuevo grupo
   const [nuevoNombre, setNuevoNombre] = useState('');
@@ -132,6 +133,16 @@ export const ChatPage: React.FC = () => {
     connection.on('GrupoChatActualizado', (payload: { grupoId: number }) => {
       queryClient.invalidateQueries({ queryKey: ['chat-grupos'] });
       queryClient.invalidateQueries({ queryKey: ['chat-grupo-detalle', payload.grupoId] });
+      queryClient.invalidateQueries({ queryKey: ['actividades'] });
+    });
+
+    connection.on('GrupoChatEliminado', (payload: { grupoId: number }) => {
+      if (payload.grupoId === grupoSeleccionadoId) {
+        setGrupoSeleccionadoId(null);
+      }
+      queryClient.invalidateQueries({ queryKey: ['chat-grupos'] });
+      queryClient.removeQueries({ queryKey: ['chat-grupo-detalle', payload.grupoId] });
+      queryClient.removeQueries({ queryKey: ['chat-mensajes', payload.grupoId] });
       queryClient.invalidateQueries({ queryKey: ['actividades'] });
     });
 
@@ -244,6 +255,26 @@ export const ChatPage: React.FC = () => {
     },
   });
 
+  // Mutación: Eliminar grupo de chat
+  const eliminarGrupoMutation = useMutation({
+    mutationFn: (grupoId: number) =>
+      apiFetch(`/api/chat/grupos/${grupoId}`, {
+        method: 'DELETE',
+      }),
+    onSuccess: (_, grupoIdEliminado) => {
+      setGrupoParaEliminar(null);
+      setModalMiembros(false);
+      if (grupoSeleccionadoId === grupoIdEliminado) {
+        const siguiente = grupos.find((g) => g.id !== grupoIdEliminado);
+        setGrupoSeleccionadoId(siguiente ? siguiente.id : null);
+      }
+      queryClient.invalidateQueries({ queryKey: ['chat-grupos'] });
+      queryClient.removeQueries({ queryKey: ['chat-grupo-detalle', grupoIdEliminado] });
+      queryClient.removeQueries({ queryKey: ['chat-mensajes', grupoIdEliminado] });
+      queryClient.invalidateQueries({ queryKey: ['actividades'] });
+    },
+  });
+
   const handleEnviar = (e: React.FormEvent) => {
     e.preventDefault();
     if (!textoMensaje.trim() || !grupoSeleccionadoId) return;
@@ -259,9 +290,18 @@ export const ChatPage: React.FC = () => {
   );
 
   const esAdmin =
-    usuario?.roles?.some((r) => r.toUpperCase() === 'ADMIN' || r.toUpperCase() === 'LIDER') ||
+    usuario?.roles?.some(
+      (r) => r.toUpperCase().includes('ADMIN') || r.toUpperCase().includes('LIDER')
+    ) ||
     tienePermiso('chat.crear') ||
     usuario?.accesoGlobalUnidades;
+
+  const puedeEliminarGrupo = (g: ChatGrupoItem) =>
+    Boolean(
+      esAdmin ||
+        g.creadoPorId === usuario?.id ||
+        g.miembros?.some((m) => m.usuarioId === usuario?.id && m.esAdmin)
+    );
 
   return (
     <div className="h-[calc(100vh-5rem)] flex flex-col -m-4 lg:-m-6 bg-slate-100 dark:bg-slate-950 overflow-hidden">
