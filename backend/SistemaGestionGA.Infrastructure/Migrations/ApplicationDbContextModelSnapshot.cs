@@ -23,2301 +23,2517 @@ namespace SistemaGestionGA.Infrastructure.Migrations
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Actividad", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("ActividadPadreId")
-                        .HasColumnType("int");
+                b.Property<int?>("ActividadPadreId")
+                    .HasColumnType("int");
 
-                    b.Property<bool>("Archivada")
-                        .HasColumnType("bit");
+                b.Property<bool>("Archivada")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("Codigo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                b.Property<int?>("ChatGrupoId")
+                    .HasColumnType("int");
 
-                    b.Property<int?>("CreadoPorId")
-                        .HasColumnType("int");
+                b.Property<string>("Codigo")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
 
-                    b.Property<int?>("DepartamentoId")
-                        .HasColumnType("int");
+                b.Property<int?>("CreadoPorId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("Descripcion")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<int?>("DepartamentoId")
+                    .HasColumnType("int");
 
-                    b.Property<int?>("EquipoId")
-                        .HasColumnType("int");
+                b.Property<string>("Descripcion")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("EsRecurrente")
-                        .HasColumnType("bit");
+                b.Property<int?>("EquipoId")
+                    .HasColumnType("int");
 
-                    b.Property<int>("EstadoActividadId")
-                        .HasColumnType("int");
+                b.Property<bool>("EsRecurrente")
+                    .HasColumnType("bit");
 
-                    b.Property<int?>("FaseProyectoId")
-                        .HasColumnType("int");
+                b.Property<int>("EstadoActividadId")
+                    .HasColumnType("int");
 
-                    b.Property<DateTime>("FechaCreacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<int?>("FaseProyectoId")
+                    .HasColumnType("int");
 
-                    b.Property<DateTime?>("FechaFinalizacionRealUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaCreacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateOnly?>("FechaInicio")
-                        .HasColumnType("date");
+                b.Property<DateTime?>("FechaFinalizacionRealUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("FechaModificacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateOnly?>("FechaInicio")
+                    .HasColumnType("date");
 
-                    b.Property<DateOnly?>("FechaVencimiento")
-                        .HasColumnType("date");
+                b.Property<DateTime?>("FechaModificacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<int?>("ModificadoPorId")
-                        .HasColumnType("int");
+                b.Property<DateOnly?>("FechaVencimiento")
+                    .HasColumnType("date");
 
-                    b.Property<string>("PatronRecurrencia")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<int?>("ModificadoPorId")
+                    .HasColumnType("int");
 
-                    b.Property<decimal>("PorcentajeAvance")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("decimal(5,2)");
+                b.Property<string>("PatronRecurrencia")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PrioridadId")
-                        .HasColumnType("int");
+                b.Property<decimal>("PorcentajeAvance")
+                    .HasPrecision(5, 2)
+                    .HasColumnType("decimal(5,2)");
 
-                    b.Property<int?>("ProyectoId")
-                        .HasColumnType("int");
+                b.Property<int>("PrioridadId")
+                    .HasColumnType("int");
 
-                    b.Property<int>("TiempoEstimadoMinutos")
-                        .HasColumnType("int");
+                b.Property<int?>("ProyectoId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("Titulo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<int>("TiempoEstimadoMinutos")
+                    .HasColumnType("int");
 
-                    b.Property<int>("UnidadId")
-                        .HasColumnType("int");
+                b.Property<string>("Titulo")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                b.Property<int>("UnidadId")
+                    .HasColumnType("int");
 
-                    b.HasIndex("ActividadPadreId");
+                b.HasKey("Id");
 
-                    b.HasIndex("Codigo")
-                        .IsUnique();
+                b.HasIndex("ActividadPadreId");
 
-                    b.HasIndex("DepartamentoId");
+                b.HasIndex("ChatGrupoId");
 
-                    b.HasIndex("EquipoId");
+                b.HasIndex("Codigo")
+                    .IsUnique();
 
-                    b.HasIndex("EstadoActividadId");
+                b.HasIndex("DepartamentoId");
 
-                    b.HasIndex("FaseProyectoId");
+                b.HasIndex("EquipoId");
 
-                    b.HasIndex("PrioridadId");
+                b.HasIndex("EstadoActividadId");
 
-                    b.HasIndex("ProyectoId");
+                b.HasIndex("FaseProyectoId");
 
-                    b.HasIndex("UnidadId");
+                b.HasIndex("PrioridadId");
 
-                    b.ToTable("Actividades");
-                });
+                b.HasIndex("ProyectoId");
+
+                b.HasIndex("UnidadId");
+
+                b.ToTable("Actividades");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ActividadAsignado", b =>
-                {
-                    b.Property<int>("ActividadId")
-                        .HasColumnType("int");
+            {
+                b.Property<int>("ActividadId")
+                    .HasColumnType("int");
 
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
+                b.Property<int>("UsuarioId")
+                    .HasColumnType("int");
 
-                    b.Property<int?>("AsignadoPorId")
-                        .HasColumnType("int");
+                b.Property<int?>("AsignadoPorId")
+                    .HasColumnType("int");
 
-                    b.Property<bool>("EsPrincipal")
-                        .HasColumnType("bit");
+                b.Property<bool>("EsPrincipal")
+                    .HasColumnType("bit");
 
-                    b.Property<DateTime>("FechaAsignacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaAsignacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.HasKey("ActividadId", "UsuarioId");
+                b.HasKey("ActividadId", "UsuarioId");
 
-                    b.HasIndex("UsuarioId");
+                b.HasIndex("UsuarioId");
 
-                    b.ToTable("ActividadAsignados");
-                });
+                b.ToTable("ActividadAsignados");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ActividadChecklist", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ActividadId")
-                        .HasColumnType("int");
+                b.Property<int>("ActividadId")
+                    .HasColumnType("int");
 
-                    b.Property<bool>("Completado")
-                        .HasColumnType("bit");
+                b.Property<bool>("Completado")
+                    .HasColumnType("bit");
 
-                    b.Property<int?>("CompletadoPorId")
-                        .HasColumnType("int");
+                b.Property<int?>("CompletadoPorId")
+                    .HasColumnType("int");
 
-                    b.Property<DateTime?>("FechaCompletadoUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("FechaCompletadoUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("FechaCreacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaCreacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<int>("Orden")
-                        .HasColumnType("int");
+                b.Property<int>("Orden")
+                    .HasColumnType("int");
 
-                    b.Property<string>("Titulo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Titulo")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("ActividadId");
+                b.HasIndex("ActividadId");
 
-                    b.ToTable("ActividadChecklists");
-                });
+                b.ToTable("ActividadChecklists");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ActividadDependencia", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ActividadId")
-                        .HasColumnType("int");
+                b.Property<int>("ActividadId")
+                    .HasColumnType("int");
 
-                    b.Property<int>("ActividadPredecesoraId")
-                        .HasColumnType("int");
+                b.Property<int>("ActividadPredecesoraId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("TipoDependencia")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("TipoDependencia")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("ActividadId");
+                b.HasIndex("ActividadId");
 
-                    b.HasIndex("ActividadPredecesoraId");
+                b.HasIndex("ActividadPredecesoraId");
 
-                    b.ToTable("ActividadDependencias");
-                });
+                b.ToTable("ActividadDependencias");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ActividadHistorial", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+            {
+                b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<int>("ActividadId")
-                        .HasColumnType("int");
+                b.Property<int>("ActividadId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("Detalle")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Detalle")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("FechaCambioUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaCambioUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("TipoCambio")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("TipoCambio")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("UsuarioId")
-                        .HasColumnType("int");
+                b.Property<int?>("UsuarioId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("ValorAnterior")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("ValorAnterior")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ValorNuevo")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("ValorNuevo")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("ActividadId");
+                b.HasIndex("ActividadId");
 
-                    b.HasIndex("UsuarioId");
+                b.HasIndex("UsuarioId");
 
-                    b.ToTable("ActividadHistorial");
-                });
+                b.ToTable("ActividadHistorial");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ActividadTiempo", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ActividadId")
-                        .HasColumnType("int");
+                b.Property<int>("ActividadId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("Descripcion")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Descripcion")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("FechaRegistroUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaRegistroUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateOnly>("FechaTrabajo")
-                        .HasColumnType("date");
+                b.Property<DateOnly>("FechaTrabajo")
+                    .HasColumnType("date");
 
-                    b.Property<int>("MinutosTrabajados")
-                        .HasColumnType("int");
+                b.Property<int>("MinutosTrabajados")
+                    .HasColumnType("int");
 
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
+                b.Property<int>("UsuarioId")
+                    .HasColumnType("int");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("ActividadId");
+                b.HasIndex("ActividadId");
 
-                    b.HasIndex("UsuarioId");
+                b.HasIndex("UsuarioId");
 
-                    b.ToTable("ActividadTiempos");
-                });
+                b.ToTable("ActividadTiempos");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Adjunto", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("ActividadId")
-                        .HasColumnType("int");
+                b.Property<int?>("ActividadId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("ContentType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("ContentType")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("EsEvidencia")
-                        .HasColumnType("bit");
+                b.Property<bool>("EsEvidencia")
+                    .HasColumnType("bit");
 
-                    b.Property<DateTime>("FechaSubidaUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaSubidaUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("HashSha256")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("HashSha256")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("NombreAlmacenado")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("NombreAlmacenado")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("NombreOriginal")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("NombreOriginal")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ProyectoId")
-                        .HasColumnType("int");
+                b.Property<int?>("ProyectoId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("RutaRelativa")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("RutaRelativa")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("SubidoPorId")
-                        .HasColumnType("int");
+                b.Property<int>("SubidoPorId")
+                    .HasColumnType("int");
 
-                    b.Property<long>("TamanoBytes")
-                        .HasColumnType("bigint");
+                b.Property<long>("TamanoBytes")
+                    .HasColumnType("bigint");
 
-                    b.Property<int?>("TicketId")
-                        .HasColumnType("int");
+                b.Property<int?>("TicketId")
+                    .HasColumnType("int");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("ActividadId");
+                b.HasIndex("ActividadId");
 
-                    b.HasIndex("ProyectoId");
+                b.HasIndex("ProyectoId");
 
-                    b.HasIndex("SubidoPorId");
+                b.HasIndex("SubidoPorId");
 
-                    b.HasIndex("TicketId");
+                b.HasIndex("TicketId");
 
-                    b.ToTable("Adjuntos");
-                });
+                b.ToTable("Adjuntos");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.AuditoriaEvento", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+            {
+                b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("Accion")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Accion")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Entidad")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Entidad")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("EntidadId")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("EntidadId")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("FechaEventoUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaEventoUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("IpAddress")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("IpAddress")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Modulo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Modulo")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("NombreUsuario")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("NombreUsuario")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Resumen")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Resumen")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("UnidadId")
-                        .HasColumnType("int");
+                b.Property<int?>("UnidadId")
+                    .HasColumnType("int");
 
-                    b.Property<int?>("UsuarioId")
-                        .HasColumnType("int");
+                b.Property<int?>("UsuarioId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("ValoresAnteriores")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("ValoresAnteriores")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ValoresNuevos")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("ValoresNuevos")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("UsuarioId");
+                b.HasIndex("UsuarioId");
 
-                    b.ToTable("AuditoriaEventos");
-                });
+                b.ToTable("AuditoriaEventos");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.CalendarioSla", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("Activo")
-                        .HasColumnType("bit");
+                b.Property<bool>("Activo")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("DiasLaborales")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("DiasLaborales")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<TimeOnly>("HoraFinAtencion")
-                        .HasColumnType("time");
+                b.Property<TimeOnly>("HoraFinAtencion")
+                    .HasColumnType("time");
 
-                    b.Property<TimeOnly>("HoraInicioAtencion")
-                        .HasColumnType("time");
+                b.Property<TimeOnly>("HoraInicioAtencion")
+                    .HasColumnType("time");
 
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Nombre")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ZonaHoraria")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("ZonaHoraria")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.ToTable("CalendariosSla");
-                });
+                b.ToTable("CalendariosSla");
+            });
+
+            modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ChatGrupo", b =>
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
+
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                b.Property<int?>("ActividadActivaId")
+                    .HasColumnType("int");
+
+                b.Property<bool>("Activo")
+                    .HasColumnType("bit");
+
+                b.Property<int>("CreadoPorId")
+                    .HasColumnType("int");
+
+                b.Property<string>("Descripcion")
+                    .HasColumnType("nvarchar(max)");
+
+                b.Property<DateTime>("FechaCreacionUtc")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("Nombre")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
+
+                b.Property<int>("UnidadId")
+                    .HasColumnType("int");
+
+                b.HasKey("Id");
+
+                b.HasIndex("ActividadActivaId");
+
+                b.HasIndex("CreadoPorId");
+
+                b.HasIndex("UnidadId");
+
+                b.ToTable("ChatGrupos");
+            });
+
+            modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ChatGrupoMiembro", b =>
+            {
+                b.Property<int>("ChatGrupoId")
+                    .HasColumnType("int");
+
+                b.Property<int>("UsuarioId")
+                    .HasColumnType("int");
+
+                b.Property<bool>("EsAdmin")
+                    .HasColumnType("bit");
+
+                b.Property<DateTime>("FechaUnionUtc")
+                    .HasColumnType("datetime2");
+
+                b.HasKey("ChatGrupoId", "UsuarioId");
+
+                b.HasIndex("UsuarioId");
+
+                b.ToTable("ChatGrupoMiembros");
+            });
+
+            modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ChatMensaje", b =>
+            {
+                b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                b.Property<int?>("ActividadId")
+                    .HasColumnType("int");
+
+                b.Property<int>("ChatGrupoId")
+                    .HasColumnType("int");
+
+                b.Property<DateTime>("FechaCreacionUtc")
+                    .HasColumnType("datetime2");
+
+                b.Property<DateTime?>("FechaRespuestaUtc")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("OpcionSeleccionada")
+                    .HasColumnType("nvarchar(max)");
+
+                b.Property<string>("OpcionesInteractivasJson")
+                    .HasColumnType("nvarchar(max)");
+
+                b.Property<int?>("RespondidoPorUsuarioId")
+                    .HasColumnType("int");
+
+                b.Property<string>("Texto")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
+
+                b.Property<string>("TipoMensaje")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
+
+                b.Property<int>("UsuarioId")
+                    .HasColumnType("int");
+
+                b.HasKey("Id");
+
+                b.HasIndex("ActividadId");
+
+                b.HasIndex("ChatGrupoId");
+
+                b.HasIndex("RespondidoPorUsuarioId");
+
+                b.HasIndex("UsuarioId");
+
+                b.ToTable("ChatMensajes");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Comentario", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("ActividadId")
-                        .HasColumnType("int");
+                b.Property<int?>("ActividadId")
+                    .HasColumnType("int");
 
-                    b.Property<int>("AutorId")
-                        .HasColumnType("int");
+                b.Property<int>("AutorId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("Contenido")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Contenido")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("EsInterno")
-                        .HasColumnType("bit");
+                b.Property<bool>("EsInterno")
+                    .HasColumnType("bit");
 
-                    b.Property<DateTime>("FechaCreacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaCreacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("MencionesJson")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("MencionesJson")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ProyectoId")
-                        .HasColumnType("int");
+                b.Property<int?>("ProyectoId")
+                    .HasColumnType("int");
 
-                    b.Property<int?>("TicketId")
-                        .HasColumnType("int");
+                b.Property<int?>("TicketId")
+                    .HasColumnType("int");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("ActividadId");
+                b.HasIndex("ActividadId");
 
-                    b.HasIndex("AutorId");
+                b.HasIndex("AutorId");
 
-                    b.HasIndex("ProyectoId");
+                b.HasIndex("ProyectoId");
 
-                    b.HasIndex("TicketId");
+                b.HasIndex("TicketId");
 
-                    b.ToTable("Comentarios");
-                });
+                b.ToTable("Comentarios");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Departamento", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("Activa")
-                        .HasColumnType("bit");
+                b.Property<bool>("Activa")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("Codigo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                b.Property<string>("Codigo")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("Descripcion")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Descripcion")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("FechaCreacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaCreacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Nombre")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UnidadId")
-                        .HasColumnType("int");
+                b.Property<int>("UnidadId")
+                    .HasColumnType("int");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("UnidadId", "Codigo")
-                        .IsUnique();
+                b.HasIndex("UnidadId", "Codigo")
+                    .IsUnique();
 
-                    b.ToTable("Departamentos");
-                });
+                b.ToTable("Departamentos");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.DiaFestivoSla", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CalendarioSlaId")
-                        .HasColumnType("int");
+                b.Property<int>("CalendarioSlaId")
+                    .HasColumnType("int");
 
-                    b.Property<DateOnly>("Fecha")
-                        .HasColumnType("date");
+                b.Property<DateOnly>("Fecha")
+                    .HasColumnType("date");
 
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Nombre")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("CalendarioSlaId");
+                b.HasIndex("CalendarioSlaId");
 
-                    b.ToTable("DiasFestivosSla");
-                });
+                b.ToTable("DiasFestivosSla");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Equipo", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("Activo")
-                        .HasColumnType("bit");
+                b.Property<bool>("Activo")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("Codigo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                b.Property<string>("Codigo")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("ColorHex")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("ColorHex")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("DepartamentoId")
-                        .HasColumnType("int");
+                b.Property<int?>("DepartamentoId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("Descripcion")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Descripcion")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("FechaCreacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaCreacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<int?>("LiderUsuarioId")
-                        .HasColumnType("int");
+                b.Property<int?>("LiderUsuarioId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Nombre")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UnidadId")
-                        .HasColumnType("int");
+                b.Property<int>("UnidadId")
+                    .HasColumnType("int");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("Codigo")
-                        .IsUnique();
+                b.HasIndex("Codigo")
+                    .IsUnique();
 
-                    b.HasIndex("DepartamentoId");
+                b.HasIndex("DepartamentoId");
 
-                    b.HasIndex("LiderUsuarioId");
+                b.HasIndex("LiderUsuarioId");
 
-                    b.HasIndex("UnidadId");
+                b.HasIndex("UnidadId");
 
-                    b.ToTable("Equipos");
-                });
+                b.ToTable("Equipos");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.EstadoActividad", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Codigo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                b.Property<string>("Codigo")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("ColorHex")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("ColorHex")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("EsFinal")
-                        .HasColumnType("bit");
+                b.Property<bool>("EsFinal")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Nombre")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Orden")
-                        .HasColumnType("int");
+                b.Property<int>("Orden")
+                    .HasColumnType("int");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("Codigo")
-                        .IsUnique();
+                b.HasIndex("Codigo")
+                    .IsUnique();
 
-                    b.ToTable("EstadosActividad");
-                });
+                b.ToTable("EstadosActividad");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.EstadoProyecto", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Codigo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                b.Property<string>("Codigo")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("ColorHex")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("ColorHex")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("EsFinal")
-                        .HasColumnType("bit");
+                b.Property<bool>("EsFinal")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Nombre")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Orden")
-                        .HasColumnType("int");
+                b.Property<int>("Orden")
+                    .HasColumnType("int");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("Codigo")
-                        .IsUnique();
+                b.HasIndex("Codigo")
+                    .IsUnique();
 
-                    b.ToTable("EstadosProyecto");
-                });
+                b.ToTable("EstadosProyecto");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.EstadoTicket", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Codigo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                b.Property<string>("Codigo")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("ColorHex")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("ColorHex")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("EsFinal")
-                        .HasColumnType("bit");
+                b.Property<bool>("EsFinal")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Nombre")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Orden")
-                        .HasColumnType("int");
+                b.Property<int>("Orden")
+                    .HasColumnType("int");
 
-                    b.Property<bool>("PausaSla")
-                        .HasColumnType("bit");
+                b.Property<bool>("PausaSla")
+                    .HasColumnType("bit");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("Codigo")
-                        .IsUnique();
+                b.HasIndex("Codigo")
+                    .IsUnique();
 
-                    b.ToTable("EstadosTicket");
-                });
+                b.ToTable("EstadosTicket");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.HistorialAcceso", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+            {
+                b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<bool>("Exitoso")
-                        .HasColumnType("bit");
+                b.Property<bool>("Exitoso")
+                    .HasColumnType("bit");
 
-                    b.Property<DateTime>("FechaIntentoUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaIntentoUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("IdentificadorIntentado")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("IdentificadorIntentado")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("IpAddress")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("IpAddress")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Motivo")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Motivo")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("UserAgent")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("UserAgent")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("UsuarioId")
-                        .HasColumnType("int");
+                b.Property<int?>("UsuarioId")
+                    .HasColumnType("int");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("UsuarioId");
+                b.HasIndex("UsuarioId");
 
-                    b.ToTable("HistorialAccesos");
-                });
+                b.ToTable("HistorialAccesos");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Notificacion", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+            {
+                b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTime>("FechaCreacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaCreacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("FechaLecturaUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("FechaLecturaUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<bool>("Leida")
-                        .HasColumnType("bit");
+                b.Property<bool>("Leida")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("Mensaje")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Mensaje")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("TipoEvento")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("TipoEvento")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Titulo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Titulo")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("UrlDestino")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("UrlDestino")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UsuarioDestinoId")
-                        .HasColumnType("int");
+                b.Property<int>("UsuarioDestinoId")
+                    .HasColumnType("int");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("UsuarioDestinoId");
+                b.HasIndex("UsuarioDestinoId");
 
-                    b.ToTable("Notificaciones");
-                });
+                b.ToTable("Notificaciones");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Permiso", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Accion")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Accion")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Codigo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                b.Property<string>("Codigo")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("Descripcion")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Descripcion")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Modulo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Modulo")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Nombre")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("Codigo")
-                        .IsUnique();
+                b.HasIndex("Codigo")
+                    .IsUnique();
 
-                    b.ToTable("Permisos");
-                });
+                b.ToTable("Permisos");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.PoliticaSla", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("Activa")
-                        .HasColumnType("bit");
+                b.Property<bool>("Activa")
+                    .HasColumnType("bit");
 
-                    b.Property<int?>("CalendarioSlaId")
-                        .HasColumnType("int");
+                b.Property<int?>("CalendarioSlaId")
+                    .HasColumnType("int");
 
-                    b.Property<int?>("EquipoEscalamientoId")
-                        .HasColumnType("int");
+                b.Property<int?>("EquipoEscalamientoId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Nombre")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PrioridadId")
-                        .HasColumnType("int");
+                b.Property<int>("PrioridadId")
+                    .HasColumnType("int");
 
-                    b.Property<int?>("TicketCategoriaId")
-                        .HasColumnType("int");
+                b.Property<int?>("TicketCategoriaId")
+                    .HasColumnType("int");
 
-                    b.Property<int?>("TicketTipoId")
-                        .HasColumnType("int");
+                b.Property<int?>("TicketTipoId")
+                    .HasColumnType("int");
 
-                    b.Property<int>("TiempoPrimeraRespuestaMinutos")
-                        .HasColumnType("int");
+                b.Property<int>("TiempoPrimeraRespuestaMinutos")
+                    .HasColumnType("int");
 
-                    b.Property<int>("TiempoResolucionMinutos")
-                        .HasColumnType("int");
+                b.Property<int>("TiempoResolucionMinutos")
+                    .HasColumnType("int");
 
-                    b.Property<int>("UmbralAlertaPorcentaje")
-                        .HasColumnType("int");
+                b.Property<int>("UmbralAlertaPorcentaje")
+                    .HasColumnType("int");
 
-                    b.Property<int?>("UnidadId")
-                        .HasColumnType("int");
+                b.Property<int?>("UnidadId")
+                    .HasColumnType("int");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("CalendarioSlaId");
+                b.HasIndex("CalendarioSlaId");
 
-                    b.HasIndex("EquipoEscalamientoId");
+                b.HasIndex("EquipoEscalamientoId");
 
-                    b.HasIndex("PrioridadId");
+                b.HasIndex("PrioridadId");
 
-                    b.HasIndex("TicketCategoriaId");
+                b.HasIndex("TicketCategoriaId");
 
-                    b.HasIndex("TicketTipoId");
+                b.HasIndex("TicketTipoId");
 
-                    b.HasIndex("UnidadId");
+                b.HasIndex("UnidadId");
 
-                    b.ToTable("PoliticasSla");
-                });
+                b.ToTable("PoliticasSla");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Prioridad", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Codigo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                b.Property<string>("Codigo")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("ColorHex")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("ColorHex")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Nivel")
-                        .HasColumnType("int");
+                b.Property<int>("Nivel")
+                    .HasColumnType("int");
 
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Nombre")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("Codigo")
-                        .IsUnique();
+                b.HasIndex("Codigo")
+                    .IsUnique();
 
-                    b.ToTable("Prioridades");
-                });
+                b.ToTable("Prioridades");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Proyecto", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("Archivado")
-                        .HasColumnType("bit");
+                b.Property<bool>("Archivado")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("Codigo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                b.Property<string>("Codigo")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
 
-                    b.Property<int?>("CreadoPorId")
-                        .HasColumnType("int");
+                b.Property<int?>("CreadoPorId")
+                    .HasColumnType("int");
 
-                    b.Property<int?>("DepartamentoId")
-                        .HasColumnType("int");
+                b.Property<int?>("DepartamentoId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("Descripcion")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Descripcion")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("EquipoId")
-                        .HasColumnType("int");
+                b.Property<int?>("EquipoId")
+                    .HasColumnType("int");
 
-                    b.Property<int>("EstadoProyectoId")
-                        .HasColumnType("int");
+                b.Property<int>("EstadoProyectoId")
+                    .HasColumnType("int");
 
-                    b.Property<DateTime>("FechaCreacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaCreacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateOnly>("FechaFinEstimada")
-                        .HasColumnType("date");
+                b.Property<DateOnly>("FechaFinEstimada")
+                    .HasColumnType("date");
 
-                    b.Property<DateOnly?>("FechaFinReal")
-                        .HasColumnType("date");
+                b.Property<DateOnly?>("FechaFinReal")
+                    .HasColumnType("date");
 
-                    b.Property<DateOnly>("FechaInicio")
-                        .HasColumnType("date");
+                b.Property<DateOnly>("FechaInicio")
+                    .HasColumnType("date");
 
-                    b.Property<DateTime?>("FechaModificacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("FechaModificacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Nombre")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("PorcentajeAvance")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("decimal(5,2)");
+                b.Property<decimal>("PorcentajeAvance")
+                    .HasPrecision(5, 2)
+                    .HasColumnType("decimal(5,2)");
 
-                    b.Property<int>("PrioridadId")
-                        .HasColumnType("int");
+                b.Property<int>("PrioridadId")
+                    .HasColumnType("int");
 
-                    b.Property<int>("ResponsableId")
-                        .HasColumnType("int");
+                b.Property<int>("ResponsableId")
+                    .HasColumnType("int");
 
-                    b.Property<int>("UnidadId")
-                        .HasColumnType("int");
+                b.Property<int>("UnidadId")
+                    .HasColumnType("int");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("Codigo")
-                        .IsUnique();
+                b.HasIndex("Codigo")
+                    .IsUnique();
 
-                    b.HasIndex("DepartamentoId");
+                b.HasIndex("DepartamentoId");
 
-                    b.HasIndex("EquipoId");
+                b.HasIndex("EquipoId");
 
-                    b.HasIndex("EstadoProyectoId");
+                b.HasIndex("EstadoProyectoId");
 
-                    b.HasIndex("PrioridadId");
+                b.HasIndex("PrioridadId");
 
-                    b.HasIndex("ResponsableId");
+                b.HasIndex("ResponsableId");
 
-                    b.HasIndex("UnidadId");
+                b.HasIndex("UnidadId");
 
-                    b.ToTable("Proyectos");
-                });
+                b.ToTable("Proyectos");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ProyectoFase", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("Completada")
-                        .HasColumnType("bit");
+                b.Property<bool>("Completada")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("Descripcion")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Descripcion")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("EsHito")
-                        .HasColumnType("bit");
+                b.Property<bool>("EsHito")
+                    .HasColumnType("bit");
 
-                    b.Property<DateOnly?>("FechaFinEstimada")
-                        .HasColumnType("date");
+                b.Property<DateOnly?>("FechaFinEstimada")
+                    .HasColumnType("date");
 
-                    b.Property<DateOnly?>("FechaInicio")
-                        .HasColumnType("date");
+                b.Property<DateOnly?>("FechaInicio")
+                    .HasColumnType("date");
 
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Nombre")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Orden")
-                        .HasColumnType("int");
+                b.Property<int>("Orden")
+                    .HasColumnType("int");
 
-                    b.Property<decimal>("PorcentajeAvance")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("decimal(5,2)");
+                b.Property<decimal>("PorcentajeAvance")
+                    .HasPrecision(5, 2)
+                    .HasColumnType("decimal(5,2)");
 
-                    b.Property<int>("ProyectoId")
-                        .HasColumnType("int");
+                b.Property<int>("ProyectoId")
+                    .HasColumnType("int");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("ProyectoId");
+                b.HasIndex("ProyectoId");
 
-                    b.ToTable("ProyectoFases");
-                });
+                b.ToTable("ProyectoFases");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ProyectoIntegrante", b =>
-                {
-                    b.Property<int>("ProyectoId")
-                        .HasColumnType("int");
+            {
+                b.Property<int>("ProyectoId")
+                    .HasColumnType("int");
 
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
+                b.Property<int>("UsuarioId")
+                    .HasColumnType("int");
 
-                    b.Property<DateTime>("FechaAsignacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaAsignacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("RolProyecto")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("RolProyecto")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("ProyectoId", "UsuarioId");
+                b.HasKey("ProyectoId", "UsuarioId");
 
-                    b.HasIndex("UsuarioId");
+                b.HasIndex("UsuarioId");
 
-                    b.ToTable("ProyectoIntegrantes");
-                });
+                b.ToTable("ProyectoIntegrantes");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.RefreshToken", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("CreadoPorIp")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("CreadoPorIp")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("FechaCreacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaCreacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("FechaExpiracionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaExpiracionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("FechaRevocacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("FechaRevocacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("MotivoRevocacion")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("MotivoRevocacion")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ReemplazadoPorTokenHash")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("ReemplazadoPorTokenHash")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("RevocadoPorIp")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("RevocadoPorIp")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("TokenHash")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("TokenHash")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
+                b.Property<int>("UsuarioId")
+                    .HasColumnType("int");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("UsuarioId");
+                b.HasIndex("UsuarioId");
 
-                    b.ToTable("RefreshTokens");
-                });
+                b.ToTable("RefreshTokens");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ReglaAutomatizacion", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AccionConfigJson")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("AccionConfigJson")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("AccionTipo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("AccionTipo")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("Activa")
-                        .HasColumnType("bit");
+                b.Property<bool>("Activa")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("CondicionJson")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("CondicionJson")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Descripcion")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Descripcion")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("EventoDisparador")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("EventoDisparador")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("FechaCreacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaCreacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Nombre")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("TotalEjecuciones")
-                        .HasColumnType("int");
+                b.Property<int>("TotalEjecuciones")
+                    .HasColumnType("int");
 
-                    b.Property<int>("TotalFallos")
-                        .HasColumnType("int");
+                b.Property<int>("TotalFallos")
+                    .HasColumnType("int");
 
-                    b.Property<DateTime?>("UltimaEjecucionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("UltimaEjecucionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.ToTable("ReglasAutomatizacion");
-                });
+                b.ToTable("ReglasAutomatizacion");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Rol", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("Activo")
-                        .HasColumnType("bit");
+                b.Property<bool>("Activo")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("Codigo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                b.Property<string>("Codigo")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("Descripcion")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Descripcion")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("EsSistema")
-                        .HasColumnType("bit");
+                b.Property<bool>("EsSistema")
+                    .HasColumnType("bit");
 
-                    b.Property<DateTime>("FechaCreacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaCreacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Nombre")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("Codigo")
-                        .IsUnique();
+                b.HasIndex("Codigo")
+                    .IsUnique();
 
-                    b.ToTable("Roles");
-                });
+                b.ToTable("Roles");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.RolPermiso", b =>
-                {
-                    b.Property<int>("RolId")
-                        .HasColumnType("int");
+            {
+                b.Property<int>("RolId")
+                    .HasColumnType("int");
 
-                    b.Property<int>("PermisoId")
-                        .HasColumnType("int");
+                b.Property<int>("PermisoId")
+                    .HasColumnType("int");
 
-                    b.HasKey("RolId", "PermisoId");
+                b.HasKey("RolId", "PermisoId");
 
-                    b.HasIndex("PermisoId");
+                b.HasIndex("PermisoId");
 
-                    b.ToTable("RolPermisos");
-                });
+                b.ToTable("RolPermisos");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Ticket", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("DepartamentoId")
-                        .HasColumnType("int");
+                b.Property<int?>("DepartamentoId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("Descripcion")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Descripcion")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("EquipoAsignadoId")
-                        .HasColumnType("int");
+                b.Property<int?>("EquipoAsignadoId")
+                    .HasColumnType("int");
 
-                    b.Property<bool>("Escalado")
-                        .HasColumnType("bit");
+                b.Property<bool>("Escalado")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("EstadoSla")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("EstadoSla")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("EstadoTicketId")
-                        .HasColumnType("int");
+                b.Property<int>("EstadoTicketId")
+                    .HasColumnType("int");
 
-                    b.Property<DateTime?>("FechaCierreUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("FechaCierreUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("FechaCreacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaCreacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("FechaLimitePrimeraRespuestaUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("FechaLimitePrimeraRespuestaUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("FechaLimiteResolucionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("FechaLimiteResolucionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("FechaModificacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("FechaModificacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("FechaPrimeraRespuestaUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("FechaPrimeraRespuestaUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("FechaResolucionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("FechaResolucionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("FechaUltimoInicioPausaUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("FechaUltimoInicioPausaUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("Folio")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                b.Property<string>("Folio")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("MinutosPausadoSla")
-                        .HasColumnType("int");
+                b.Property<int>("MinutosPausadoSla")
+                    .HasColumnType("int");
 
-                    b.Property<int?>("PoliticaSlaId")
-                        .HasColumnType("int");
+                b.Property<int?>("PoliticaSlaId")
+                    .HasColumnType("int");
 
-                    b.Property<int>("PrioridadId")
-                        .HasColumnType("int");
+                b.Property<int>("PrioridadId")
+                    .HasColumnType("int");
 
-                    b.Property<int?>("ResponsableId")
-                        .HasColumnType("int");
+                b.Property<int?>("ResponsableId")
+                    .HasColumnType("int");
 
-                    b.Property<int>("SolicitanteId")
-                        .HasColumnType("int");
+                b.Property<int>("SolicitanteId")
+                    .HasColumnType("int");
 
-                    b.Property<int>("TicketCategoriaId")
-                        .HasColumnType("int");
+                b.Property<int>("TicketCategoriaId")
+                    .HasColumnType("int");
 
-                    b.Property<int>("TicketTipoId")
-                        .HasColumnType("int");
+                b.Property<int>("TicketTipoId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("Titulo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Titulo")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UnidadId")
-                        .HasColumnType("int");
+                b.Property<int>("UnidadId")
+                    .HasColumnType("int");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("DepartamentoId");
+                b.HasIndex("DepartamentoId");
 
-                    b.HasIndex("EquipoAsignadoId");
+                b.HasIndex("EquipoAsignadoId");
 
-                    b.HasIndex("EstadoTicketId");
+                b.HasIndex("EstadoTicketId");
 
-                    b.HasIndex("Folio")
-                        .IsUnique();
+                b.HasIndex("Folio")
+                    .IsUnique();
 
-                    b.HasIndex("PoliticaSlaId");
+                b.HasIndex("PoliticaSlaId");
 
-                    b.HasIndex("PrioridadId");
+                b.HasIndex("PrioridadId");
 
-                    b.HasIndex("ResponsableId");
+                b.HasIndex("ResponsableId");
 
-                    b.HasIndex("SolicitanteId");
+                b.HasIndex("SolicitanteId");
 
-                    b.HasIndex("TicketCategoriaId");
+                b.HasIndex("TicketCategoriaId");
 
-                    b.HasIndex("TicketTipoId");
+                b.HasIndex("TicketTipoId");
 
-                    b.HasIndex("UnidadId");
+                b.HasIndex("UnidadId");
 
-                    b.ToTable("Tickets");
-                });
+                b.ToTable("Tickets");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.TicketActividad", b =>
-                {
-                    b.Property<int>("TicketId")
-                        .HasColumnType("int");
+            {
+                b.Property<int>("TicketId")
+                    .HasColumnType("int");
 
-                    b.Property<int>("ActividadId")
-                        .HasColumnType("int");
+                b.Property<int>("ActividadId")
+                    .HasColumnType("int");
 
-                    b.Property<DateTime>("FechaVinculacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaVinculacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.HasKey("TicketId", "ActividadId");
+                b.HasKey("TicketId", "ActividadId");
 
-                    b.HasIndex("ActividadId");
+                b.HasIndex("ActividadId");
 
-                    b.ToTable("TicketActividades");
-                });
+                b.ToTable("TicketActividades");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.TicketCategoria", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("Activa")
-                        .HasColumnType("bit");
+                b.Property<bool>("Activa")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("Codigo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                b.Property<string>("Codigo")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("Descripcion")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Descripcion")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Nombre")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("Codigo")
-                        .IsUnique();
+                b.HasIndex("Codigo")
+                    .IsUnique();
 
-                    b.ToTable("TicketCategorias");
-                });
+                b.ToTable("TicketCategorias");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.TicketHistorial", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+            {
+                b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("Accion")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Accion")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Detalle")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Detalle")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("EstadoAnterior")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("EstadoAnterior")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("EstadoNuevo")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("EstadoNuevo")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("FechaEventoUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaEventoUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<int>("TicketId")
-                        .HasColumnType("int");
+                b.Property<int>("TicketId")
+                    .HasColumnType("int");
 
-                    b.Property<int?>("UsuarioId")
-                        .HasColumnType("int");
+                b.Property<int?>("UsuarioId")
+                    .HasColumnType("int");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("TicketId");
+                b.HasIndex("TicketId");
 
-                    b.HasIndex("UsuarioId");
+                b.HasIndex("UsuarioId");
 
-                    b.ToTable("TicketHistorial");
-                });
+                b.ToTable("TicketHistorial");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.TicketTipo", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("Activa")
-                        .HasColumnType("bit");
+                b.Property<bool>("Activa")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("Codigo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                b.Property<string>("Codigo")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("Descripcion")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Descripcion")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Nombre")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("Codigo")
-                        .IsUnique();
+                b.HasIndex("Codigo")
+                    .IsUnique();
 
-                    b.ToTable("TicketTipos");
-                });
+                b.ToTable("TicketTipos");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Unidad", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("Activa")
-                        .HasColumnType("bit");
+                b.Property<bool>("Activa")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("Codigo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                b.Property<string>("Codigo")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("Descripcion")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Descripcion")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("FechaCreacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaCreacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("FechaModificacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("FechaModificacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Nombre")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ZonaHoraria")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("ZonaHoraria")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("Codigo")
-                        .IsUnique();
+                b.HasIndex("Codigo")
+                    .IsUnique();
 
-                    b.ToTable("Unidades");
-                });
+                b.ToTable("Unidades");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Usuario", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("AccesoGlobalUnidades")
-                        .HasColumnType("bit");
+                b.Property<bool>("AccesoGlobalUnidades")
+                    .HasColumnType("bit");
 
-                    b.Property<bool>("Activo")
-                        .HasColumnType("bit");
+                b.Property<bool>("Activo")
+                    .HasColumnType("bit");
 
-                    b.Property<DateTime?>("BloqueadoHastaUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("BloqueadoHastaUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("Cargo")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Cargo")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("DebeCambiarPassword")
-                        .HasColumnType("bit");
+                b.Property<bool>("DebeCambiarPassword")
+                    .HasColumnType("bit");
 
-                    b.Property<int?>("DepartamentoId")
-                        .HasColumnType("int");
+                b.Property<int?>("DepartamentoId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                b.Property<string>("Email")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
 
-                    b.Property<DateTime>("FechaCreacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaCreacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("FechaModificacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("FechaModificacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<int>("IntentosFallidos")
-                        .HasColumnType("int");
+                b.Property<int>("IntentosFallidos")
+                    .HasColumnType("int");
 
-                    b.Property<string>("NombreCompleto")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("NombreCompleto")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("NombreUsuario")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                b.Property<string>("NombreUsuario")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("PasswordHash")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Telefono")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Telefono")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("TokenRecuperacionExpiraUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("TokenRecuperacionExpiraUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("TokenRecuperacionHash")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("TokenRecuperacionHash")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("UltimoAccesoUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("UltimoAccesoUtc")
+                    .HasColumnType("datetime2");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("DepartamentoId");
+                b.HasIndex("DepartamentoId");
 
-                    b.HasIndex("Email")
-                        .IsUnique();
+                b.HasIndex("Email")
+                    .IsUnique();
 
-                    b.HasIndex("NombreUsuario")
-                        .IsUnique();
+                b.HasIndex("NombreUsuario")
+                    .IsUnique();
 
-                    b.ToTable("Usuarios");
-                });
+                b.ToTable("Usuarios");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.UsuarioEquipo", b =>
-                {
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
+            {
+                b.Property<int>("UsuarioId")
+                    .HasColumnType("int");
 
-                    b.Property<int>("EquipoId")
-                        .HasColumnType("int");
+                b.Property<int>("EquipoId")
+                    .HasColumnType("int");
 
-                    b.Property<DateTime>("FechaIncorporacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaIncorporacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("RolEnEquipo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("RolEnEquipo")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("UsuarioId", "EquipoId");
+                b.HasKey("UsuarioId", "EquipoId");
 
-                    b.HasIndex("EquipoId");
+                b.HasIndex("EquipoId");
 
-                    b.ToTable("UsuarioEquipos");
-                });
+                b.ToTable("UsuarioEquipos");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.UsuarioRol", b =>
-                {
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
+            {
+                b.Property<int>("UsuarioId")
+                    .HasColumnType("int");
 
-                    b.Property<int>("RolId")
-                        .HasColumnType("int");
+                b.Property<int>("RolId")
+                    .HasColumnType("int");
 
-                    b.Property<DateTime>("FechaAsignacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaAsignacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.HasKey("UsuarioId", "RolId");
+                b.HasKey("UsuarioId", "RolId");
 
-                    b.HasIndex("RolId");
+                b.HasIndex("RolId");
 
-                    b.ToTable("UsuarioRoles");
-                });
+                b.ToTable("UsuarioRoles");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.UsuarioUnidad", b =>
-                {
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
+            {
+                b.Property<int>("UsuarioId")
+                    .HasColumnType("int");
 
-                    b.Property<int>("UnidadId")
-                        .HasColumnType("int");
+                b.Property<int>("UnidadId")
+                    .HasColumnType("int");
 
-                    b.Property<bool>("EsUnidadPrincipal")
-                        .HasColumnType("bit");
+                b.Property<bool>("EsUnidadPrincipal")
+                    .HasColumnType("bit");
 
-                    b.Property<DateTime>("FechaAsignacionUtc")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("FechaAsignacionUtc")
+                    .HasColumnType("datetime2");
 
-                    b.HasKey("UsuarioId", "UnidadId");
+                b.HasKey("UsuarioId", "UnidadId");
 
-                    b.HasIndex("UnidadId");
+                b.HasIndex("UnidadId");
 
-                    b.ToTable("UsuarioUnidades");
-                });
+                b.ToTable("UsuarioUnidades");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Actividad", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "ActividadPadre")
-                        .WithMany("Subtareas")
-                        .HasForeignKey("ActividadPadreId")
-                        .OnDelete(DeleteBehavior.Restrict);
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "ActividadPadre")
+                    .WithMany("Subtareas")
+                    .HasForeignKey("ActividadPadreId")
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Departamento", "Departamento")
-                        .WithMany()
-                        .HasForeignKey("DepartamentoId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                b.HasOne("SistemaGestionGA.Domain.Entities.ChatGrupo", "ChatGrupo")
+                    .WithMany("Actividades")
+                    .HasForeignKey("ChatGrupoId")
+                    .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Equipo", "Equipo")
-                        .WithMany()
-                        .HasForeignKey("EquipoId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                b.HasOne("SistemaGestionGA.Domain.Entities.Departamento", "Departamento")
+                    .WithMany()
+                    .HasForeignKey("DepartamentoId")
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.EstadoActividad", "EstadoActividad")
-                        .WithMany()
-                        .HasForeignKey("EstadoActividadId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.Equipo", "Equipo")
+                    .WithMany()
+                    .HasForeignKey("EquipoId")
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.ProyectoFase", "FaseProyecto")
-                        .WithMany()
-                        .HasForeignKey("FaseProyectoId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                b.HasOne("SistemaGestionGA.Domain.Entities.EstadoActividad", "EstadoActividad")
+                    .WithMany()
+                    .HasForeignKey("EstadoActividadId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Prioridad", "Prioridad")
-                        .WithMany()
-                        .HasForeignKey("PrioridadId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.ProyectoFase", "FaseProyecto")
+                    .WithMany()
+                    .HasForeignKey("FaseProyectoId")
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Proyecto", "Proyecto")
-                        .WithMany("Actividades")
-                        .HasForeignKey("ProyectoId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                b.HasOne("SistemaGestionGA.Domain.Entities.Prioridad", "Prioridad")
+                    .WithMany()
+                    .HasForeignKey("PrioridadId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Unidad", "Unidad")
-                        .WithMany()
-                        .HasForeignKey("UnidadId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.Proyecto", "Proyecto")
+                    .WithMany("Actividades")
+                    .HasForeignKey("ProyectoId")
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("ActividadPadre");
+                b.HasOne("SistemaGestionGA.Domain.Entities.Unidad", "Unidad")
+                    .WithMany()
+                    .HasForeignKey("UnidadId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
 
-                    b.Navigation("Departamento");
+                b.Navigation("ActividadPadre");
 
-                    b.Navigation("Equipo");
+                b.Navigation("ChatGrupo");
 
-                    b.Navigation("EstadoActividad");
+                b.Navigation("Departamento");
 
-                    b.Navigation("FaseProyecto");
+                b.Navigation("Equipo");
 
-                    b.Navigation("Prioridad");
+                b.Navigation("EstadoActividad");
 
-                    b.Navigation("Proyecto");
+                b.Navigation("FaseProyecto");
 
-                    b.Navigation("Unidad");
-                });
+                b.Navigation("Prioridad");
+
+                b.Navigation("Proyecto");
+
+                b.Navigation("Unidad");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ActividadAsignado", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "Actividad")
-                        .WithMany("Asignados")
-                        .HasForeignKey("ActividadId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "Actividad")
+                    .WithMany("Asignados")
+                    .HasForeignKey("ActividadId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
+                    .WithMany()
+                    .HasForeignKey("UsuarioId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
 
-                    b.Navigation("Actividad");
+                b.Navigation("Actividad");
 
-                    b.Navigation("Usuario");
-                });
+                b.Navigation("Usuario");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ActividadChecklist", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "Actividad")
-                        .WithMany("Checklists")
-                        .HasForeignKey("ActividadId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "Actividad")
+                    .WithMany("Checklists")
+                    .HasForeignKey("ActividadId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Actividad");
-                });
+                b.Navigation("Actividad");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ActividadDependencia", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "Actividad")
-                        .WithMany("Dependencias")
-                        .HasForeignKey("ActividadId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "Actividad")
+                    .WithMany("Dependencias")
+                    .HasForeignKey("ActividadId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "ActividadPredecesora")
-                        .WithMany()
-                        .HasForeignKey("ActividadPredecesoraId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "ActividadPredecesora")
+                    .WithMany()
+                    .HasForeignKey("ActividadPredecesoraId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
 
-                    b.Navigation("Actividad");
+                b.Navigation("Actividad");
 
-                    b.Navigation("ActividadPredecesora");
-                });
+                b.Navigation("ActividadPredecesora");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ActividadHistorial", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "Actividad")
-                        .WithMany("Historial")
-                        .HasForeignKey("ActividadId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "Actividad")
+                    .WithMany("Historial")
+                    .HasForeignKey("ActividadId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
+                    .WithMany()
+                    .HasForeignKey("UsuarioId")
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("Actividad");
+                b.Navigation("Actividad");
 
-                    b.Navigation("Usuario");
-                });
+                b.Navigation("Usuario");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ActividadTiempo", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "Actividad")
-                        .WithMany("Tiempos")
-                        .HasForeignKey("ActividadId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "Actividad")
+                    .WithMany("Tiempos")
+                    .HasForeignKey("ActividadId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
+                    .WithMany()
+                    .HasForeignKey("UsuarioId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
 
-                    b.Navigation("Actividad");
+                b.Navigation("Actividad");
 
-                    b.Navigation("Usuario");
-                });
+                b.Navigation("Usuario");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Adjunto", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "Actividad")
-                        .WithMany("Adjuntos")
-                        .HasForeignKey("ActividadId")
-                        .OnDelete(DeleteBehavior.Restrict);
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "Actividad")
+                    .WithMany("Adjuntos")
+                    .HasForeignKey("ActividadId")
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Proyecto", "Proyecto")
-                        .WithMany("Adjuntos")
-                        .HasForeignKey("ProyectoId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                b.HasOne("SistemaGestionGA.Domain.Entities.Proyecto", "Proyecto")
+                    .WithMany("Adjuntos")
+                    .HasForeignKey("ProyectoId")
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "SubidoPor")
-                        .WithMany()
-                        .HasForeignKey("SubidoPorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "SubidoPor")
+                    .WithMany()
+                    .HasForeignKey("SubidoPorId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Ticket", "Ticket")
-                        .WithMany("Adjuntos")
-                        .HasForeignKey("TicketId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                b.HasOne("SistemaGestionGA.Domain.Entities.Ticket", "Ticket")
+                    .WithMany("Adjuntos")
+                    .HasForeignKey("TicketId")
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("Actividad");
+                b.Navigation("Actividad");
 
-                    b.Navigation("Proyecto");
+                b.Navigation("Proyecto");
 
-                    b.Navigation("SubidoPor");
+                b.Navigation("SubidoPor");
 
-                    b.Navigation("Ticket");
-                });
+                b.Navigation("Ticket");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.AuditoriaEvento", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId");
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
+                    .WithMany()
+                    .HasForeignKey("UsuarioId");
 
-                    b.Navigation("Usuario");
-                });
+                b.Navigation("Usuario");
+            });
+
+            modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ChatGrupo", b =>
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "ActividadActiva")
+                    .WithMany()
+                    .HasForeignKey("ActividadActivaId")
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "CreadoPor")
+                    .WithMany()
+                    .HasForeignKey("CreadoPorId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
+
+                b.HasOne("SistemaGestionGA.Domain.Entities.Unidad", "Unidad")
+                    .WithMany()
+                    .HasForeignKey("UnidadId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
+
+                b.Navigation("ActividadActiva");
+
+                b.Navigation("CreadoPor");
+
+                b.Navigation("Unidad");
+            });
+
+            modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ChatGrupoMiembro", b =>
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.ChatGrupo", "ChatGrupo")
+                    .WithMany("Miembros")
+                    .HasForeignKey("ChatGrupoId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
+                    .WithMany()
+                    .HasForeignKey("UsuarioId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
+
+                b.Navigation("ChatGrupo");
+
+                b.Navigation("Usuario");
+            });
+
+            modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ChatMensaje", b =>
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "Actividad")
+                    .WithMany("ChatMensajes")
+                    .HasForeignKey("ActividadId")
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                b.HasOne("SistemaGestionGA.Domain.Entities.ChatGrupo", "ChatGrupo")
+                    .WithMany("Mensajes")
+                    .HasForeignKey("ChatGrupoId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "RespondidoPorUsuario")
+                    .WithMany()
+                    .HasForeignKey("RespondidoPorUsuarioId")
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
+                    .WithMany()
+                    .HasForeignKey("UsuarioId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
+
+                b.Navigation("Actividad");
+
+                b.Navigation("ChatGrupo");
+
+                b.Navigation("RespondidoPorUsuario");
+
+                b.Navigation("Usuario");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Comentario", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "Actividad")
-                        .WithMany("Comentarios")
-                        .HasForeignKey("ActividadId")
-                        .OnDelete(DeleteBehavior.Restrict);
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "Actividad")
+                    .WithMany("Comentarios")
+                    .HasForeignKey("ActividadId")
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Autor")
-                        .WithMany()
-                        .HasForeignKey("AutorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Autor")
+                    .WithMany()
+                    .HasForeignKey("AutorId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Proyecto", "Proyecto")
-                        .WithMany("Comentarios")
-                        .HasForeignKey("ProyectoId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                b.HasOne("SistemaGestionGA.Domain.Entities.Proyecto", "Proyecto")
+                    .WithMany("Comentarios")
+                    .HasForeignKey("ProyectoId")
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Ticket", "Ticket")
-                        .WithMany("Comentarios")
-                        .HasForeignKey("TicketId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                b.HasOne("SistemaGestionGA.Domain.Entities.Ticket", "Ticket")
+                    .WithMany("Comentarios")
+                    .HasForeignKey("TicketId")
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("Actividad");
+                b.Navigation("Actividad");
 
-                    b.Navigation("Autor");
+                b.Navigation("Autor");
 
-                    b.Navigation("Proyecto");
+                b.Navigation("Proyecto");
 
-                    b.Navigation("Ticket");
-                });
+                b.Navigation("Ticket");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Departamento", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Unidad", "Unidad")
-                        .WithMany("Departamentos")
-                        .HasForeignKey("UnidadId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Unidad", "Unidad")
+                    .WithMany("Departamentos")
+                    .HasForeignKey("UnidadId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
 
-                    b.Navigation("Unidad");
-                });
+                b.Navigation("Unidad");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.DiaFestivoSla", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.CalendarioSla", "CalendarioSla")
-                        .WithMany("DiasFestivos")
-                        .HasForeignKey("CalendarioSlaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.CalendarioSla", "CalendarioSla")
+                    .WithMany("DiasFestivos")
+                    .HasForeignKey("CalendarioSlaId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("CalendarioSla");
-                });
+                b.Navigation("CalendarioSla");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Equipo", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Departamento", "Departamento")
-                        .WithMany()
-                        .HasForeignKey("DepartamentoId")
-                        .OnDelete(DeleteBehavior.Restrict);
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Departamento", "Departamento")
+                    .WithMany()
+                    .HasForeignKey("DepartamentoId")
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "LiderUsuario")
-                        .WithMany()
-                        .HasForeignKey("LiderUsuarioId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "LiderUsuario")
+                    .WithMany()
+                    .HasForeignKey("LiderUsuarioId")
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Unidad", "Unidad")
-                        .WithMany("Equipos")
-                        .HasForeignKey("UnidadId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.Unidad", "Unidad")
+                    .WithMany("Equipos")
+                    .HasForeignKey("UnidadId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
 
-                    b.Navigation("Departamento");
+                b.Navigation("Departamento");
 
-                    b.Navigation("LiderUsuario");
+                b.Navigation("LiderUsuario");
 
-                    b.Navigation("Unidad");
-                });
+                b.Navigation("Unidad");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.HistorialAcceso", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId");
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
+                    .WithMany()
+                    .HasForeignKey("UsuarioId");
 
-                    b.Navigation("Usuario");
-                });
+                b.Navigation("Usuario");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Notificacion", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "UsuarioDestino")
-                        .WithMany()
-                        .HasForeignKey("UsuarioDestinoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "UsuarioDestino")
+                    .WithMany()
+                    .HasForeignKey("UsuarioDestinoId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("UsuarioDestino");
-                });
+                b.Navigation("UsuarioDestino");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.PoliticaSla", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.CalendarioSla", "CalendarioSla")
-                        .WithMany()
-                        .HasForeignKey("CalendarioSlaId");
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.CalendarioSla", "CalendarioSla")
+                    .WithMany()
+                    .HasForeignKey("CalendarioSlaId");
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Equipo", "EquipoEscalamiento")
-                        .WithMany()
-                        .HasForeignKey("EquipoEscalamientoId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                b.HasOne("SistemaGestionGA.Domain.Entities.Equipo", "EquipoEscalamiento")
+                    .WithMany()
+                    .HasForeignKey("EquipoEscalamientoId")
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Prioridad", "Prioridad")
-                        .WithMany()
-                        .HasForeignKey("PrioridadId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.Prioridad", "Prioridad")
+                    .WithMany()
+                    .HasForeignKey("PrioridadId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.TicketCategoria", "TicketCategoria")
-                        .WithMany()
-                        .HasForeignKey("TicketCategoriaId");
+                b.HasOne("SistemaGestionGA.Domain.Entities.TicketCategoria", "TicketCategoria")
+                    .WithMany()
+                    .HasForeignKey("TicketCategoriaId");
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.TicketTipo", "TicketTipo")
-                        .WithMany()
-                        .HasForeignKey("TicketTipoId");
+                b.HasOne("SistemaGestionGA.Domain.Entities.TicketTipo", "TicketTipo")
+                    .WithMany()
+                    .HasForeignKey("TicketTipoId");
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Unidad", "Unidad")
-                        .WithMany()
-                        .HasForeignKey("UnidadId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                b.HasOne("SistemaGestionGA.Domain.Entities.Unidad", "Unidad")
+                    .WithMany()
+                    .HasForeignKey("UnidadId")
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("CalendarioSla");
+                b.Navigation("CalendarioSla");
 
-                    b.Navigation("EquipoEscalamiento");
+                b.Navigation("EquipoEscalamiento");
 
-                    b.Navigation("Prioridad");
+                b.Navigation("Prioridad");
 
-                    b.Navigation("TicketCategoria");
+                b.Navigation("TicketCategoria");
 
-                    b.Navigation("TicketTipo");
+                b.Navigation("TicketTipo");
 
-                    b.Navigation("Unidad");
-                });
+                b.Navigation("Unidad");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Proyecto", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Departamento", "Departamento")
-                        .WithMany()
-                        .HasForeignKey("DepartamentoId")
-                        .OnDelete(DeleteBehavior.Restrict);
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Departamento", "Departamento")
+                    .WithMany()
+                    .HasForeignKey("DepartamentoId")
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Equipo", "Equipo")
-                        .WithMany()
-                        .HasForeignKey("EquipoId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                b.HasOne("SistemaGestionGA.Domain.Entities.Equipo", "Equipo")
+                    .WithMany()
+                    .HasForeignKey("EquipoId")
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.EstadoProyecto", "EstadoProyecto")
-                        .WithMany()
-                        .HasForeignKey("EstadoProyectoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.EstadoProyecto", "EstadoProyecto")
+                    .WithMany()
+                    .HasForeignKey("EstadoProyectoId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Prioridad", "Prioridad")
-                        .WithMany()
-                        .HasForeignKey("PrioridadId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.Prioridad", "Prioridad")
+                    .WithMany()
+                    .HasForeignKey("PrioridadId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Responsable")
-                        .WithMany()
-                        .HasForeignKey("ResponsableId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Responsable")
+                    .WithMany()
+                    .HasForeignKey("ResponsableId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Unidad", "Unidad")
-                        .WithMany()
-                        .HasForeignKey("UnidadId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.Unidad", "Unidad")
+                    .WithMany()
+                    .HasForeignKey("UnidadId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
 
-                    b.Navigation("Departamento");
+                b.Navigation("Departamento");
 
-                    b.Navigation("Equipo");
+                b.Navigation("Equipo");
 
-                    b.Navigation("EstadoProyecto");
+                b.Navigation("EstadoProyecto");
 
-                    b.Navigation("Prioridad");
+                b.Navigation("Prioridad");
 
-                    b.Navigation("Responsable");
+                b.Navigation("Responsable");
 
-                    b.Navigation("Unidad");
-                });
+                b.Navigation("Unidad");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ProyectoFase", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Proyecto", "Proyecto")
-                        .WithMany("Fases")
-                        .HasForeignKey("ProyectoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Proyecto", "Proyecto")
+                    .WithMany("Fases")
+                    .HasForeignKey("ProyectoId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Proyecto");
-                });
+                b.Navigation("Proyecto");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ProyectoIntegrante", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Proyecto", "Proyecto")
-                        .WithMany("Integrantes")
-                        .HasForeignKey("ProyectoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Proyecto", "Proyecto")
+                    .WithMany("Integrantes")
+                    .HasForeignKey("ProyectoId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
+                    .WithMany()
+                    .HasForeignKey("UsuarioId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
 
-                    b.Navigation("Proyecto");
+                b.Navigation("Proyecto");
 
-                    b.Navigation("Usuario");
-                });
+                b.Navigation("Usuario");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.RefreshToken", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
-                        .WithMany("RefreshTokens")
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
+                    .WithMany("RefreshTokens")
+                    .HasForeignKey("UsuarioId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Usuario");
-                });
+                b.Navigation("Usuario");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.RolPermiso", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Permiso", "Permiso")
-                        .WithMany("RolPermisos")
-                        .HasForeignKey("PermisoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Permiso", "Permiso")
+                    .WithMany("RolPermisos")
+                    .HasForeignKey("PermisoId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Rol", "Rol")
-                        .WithMany("RolPermisos")
-                        .HasForeignKey("RolId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.Rol", "Rol")
+                    .WithMany("RolPermisos")
+                    .HasForeignKey("RolId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Permiso");
+                b.Navigation("Permiso");
 
-                    b.Navigation("Rol");
-                });
+                b.Navigation("Rol");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Ticket", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Departamento", "Departamento")
-                        .WithMany()
-                        .HasForeignKey("DepartamentoId")
-                        .OnDelete(DeleteBehavior.Restrict);
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Departamento", "Departamento")
+                    .WithMany()
+                    .HasForeignKey("DepartamentoId")
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Equipo", "EquipoAsignado")
-                        .WithMany()
-                        .HasForeignKey("EquipoAsignadoId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                b.HasOne("SistemaGestionGA.Domain.Entities.Equipo", "EquipoAsignado")
+                    .WithMany()
+                    .HasForeignKey("EquipoAsignadoId")
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.EstadoTicket", "EstadoTicket")
-                        .WithMany()
-                        .HasForeignKey("EstadoTicketId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.EstadoTicket", "EstadoTicket")
+                    .WithMany()
+                    .HasForeignKey("EstadoTicketId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.PoliticaSla", "PoliticaSla")
-                        .WithMany()
-                        .HasForeignKey("PoliticaSlaId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                b.HasOne("SistemaGestionGA.Domain.Entities.PoliticaSla", "PoliticaSla")
+                    .WithMany()
+                    .HasForeignKey("PoliticaSlaId")
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Prioridad", "Prioridad")
-                        .WithMany()
-                        .HasForeignKey("PrioridadId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.Prioridad", "Prioridad")
+                    .WithMany()
+                    .HasForeignKey("PrioridadId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Responsable")
-                        .WithMany()
-                        .HasForeignKey("ResponsableId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Responsable")
+                    .WithMany()
+                    .HasForeignKey("ResponsableId")
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Solicitante")
-                        .WithMany()
-                        .HasForeignKey("SolicitanteId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Solicitante")
+                    .WithMany()
+                    .HasForeignKey("SolicitanteId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.TicketCategoria", "TicketCategoria")
-                        .WithMany()
-                        .HasForeignKey("TicketCategoriaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.TicketCategoria", "TicketCategoria")
+                    .WithMany()
+                    .HasForeignKey("TicketCategoriaId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.TicketTipo", "TicketTipo")
-                        .WithMany()
-                        .HasForeignKey("TicketTipoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.TicketTipo", "TicketTipo")
+                    .WithMany()
+                    .HasForeignKey("TicketTipoId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Unidad", "Unidad")
-                        .WithMany()
-                        .HasForeignKey("UnidadId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.Unidad", "Unidad")
+                    .WithMany()
+                    .HasForeignKey("UnidadId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
 
-                    b.Navigation("Departamento");
+                b.Navigation("Departamento");
 
-                    b.Navigation("EquipoAsignado");
+                b.Navigation("EquipoAsignado");
 
-                    b.Navigation("EstadoTicket");
+                b.Navigation("EstadoTicket");
 
-                    b.Navigation("PoliticaSla");
+                b.Navigation("PoliticaSla");
 
-                    b.Navigation("Prioridad");
+                b.Navigation("Prioridad");
 
-                    b.Navigation("Responsable");
+                b.Navigation("Responsable");
 
-                    b.Navigation("Solicitante");
+                b.Navigation("Solicitante");
 
-                    b.Navigation("TicketCategoria");
+                b.Navigation("TicketCategoria");
 
-                    b.Navigation("TicketTipo");
+                b.Navigation("TicketTipo");
 
-                    b.Navigation("Unidad");
-                });
+                b.Navigation("Unidad");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.TicketActividad", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "Actividad")
-                        .WithMany("TicketActividades")
-                        .HasForeignKey("ActividadId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "Actividad")
+                    .WithMany("TicketActividades")
+                    .HasForeignKey("ActividadId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Ticket", "Ticket")
-                        .WithMany("TicketActividades")
-                        .HasForeignKey("TicketId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.Ticket", "Ticket")
+                    .WithMany("TicketActividades")
+                    .HasForeignKey("TicketId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Actividad");
+                b.Navigation("Actividad");
 
-                    b.Navigation("Ticket");
-                });
+                b.Navigation("Ticket");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.TicketHistorial", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Ticket", "Ticket")
-                        .WithMany("Historial")
-                        .HasForeignKey("TicketId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Ticket", "Ticket")
+                    .WithMany("Historial")
+                    .HasForeignKey("TicketId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
+                    .WithMany()
+                    .HasForeignKey("UsuarioId")
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("Ticket");
+                b.Navigation("Ticket");
 
-                    b.Navigation("Usuario");
-                });
+                b.Navigation("Usuario");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Usuario", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Departamento", "Departamento")
-                        .WithMany("Usuarios")
-                        .HasForeignKey("DepartamentoId")
-                        .OnDelete(DeleteBehavior.SetNull);
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Departamento", "Departamento")
+                    .WithMany("Usuarios")
+                    .HasForeignKey("DepartamentoId")
+                    .OnDelete(DeleteBehavior.SetNull);
 
-                    b.Navigation("Departamento");
-                });
+                b.Navigation("Departamento");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.UsuarioEquipo", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Equipo", "Equipo")
-                        .WithMany("Integrantes")
-                        .HasForeignKey("EquipoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Equipo", "Equipo")
+                    .WithMany("Integrantes")
+                    .HasForeignKey("EquipoId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
-                        .WithMany("UsuarioEquipos")
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
+                    .WithMany("UsuarioEquipos")
+                    .HasForeignKey("UsuarioId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Equipo");
+                b.Navigation("Equipo");
 
-                    b.Navigation("Usuario");
-                });
+                b.Navigation("Usuario");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.UsuarioRol", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Rol", "Rol")
-                        .WithMany("UsuarioRoles")
-                        .HasForeignKey("RolId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Rol", "Rol")
+                    .WithMany("UsuarioRoles")
+                    .HasForeignKey("RolId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
-                        .WithMany("UsuarioRoles")
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
+                    .WithMany("UsuarioRoles")
+                    .HasForeignKey("UsuarioId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Rol");
+                b.Navigation("Rol");
 
-                    b.Navigation("Usuario");
-                });
+                b.Navigation("Usuario");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.UsuarioUnidad", b =>
-                {
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Unidad", "Unidad")
-                        .WithMany("UsuarioUnidades")
-                        .HasForeignKey("UnidadId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("SistemaGestionGA.Domain.Entities.Unidad", "Unidad")
+                    .WithMany("UsuarioUnidades")
+                    .HasForeignKey("UnidadId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
-                        .WithMany("UsuarioUnidades")
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
+                    .WithMany("UsuarioUnidades")
+                    .HasForeignKey("UsuarioId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Unidad");
+                b.Navigation("Unidad");
 
-                    b.Navigation("Usuario");
-                });
+                b.Navigation("Usuario");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Actividad", b =>
-                {
-                    b.Navigation("Adjuntos");
+            {
+                b.Navigation("Adjuntos");
 
-                    b.Navigation("Asignados");
+                b.Navigation("Asignados");
 
-                    b.Navigation("Checklists");
+                b.Navigation("ChatMensajes");
 
-                    b.Navigation("Comentarios");
+                b.Navigation("Checklists");
 
-                    b.Navigation("Dependencias");
+                b.Navigation("Comentarios");
 
-                    b.Navigation("Historial");
+                b.Navigation("Dependencias");
 
-                    b.Navigation("Subtareas");
+                b.Navigation("Historial");
 
-                    b.Navigation("TicketActividades");
+                b.Navigation("Subtareas");
 
-                    b.Navigation("Tiempos");
-                });
+                b.Navigation("TicketActividades");
+
+                b.Navigation("Tiempos");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.CalendarioSla", b =>
-                {
-                    b.Navigation("DiasFestivos");
-                });
+            {
+                b.Navigation("DiasFestivos");
+            });
+
+            modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ChatGrupo", b =>
+            {
+                b.Navigation("Actividades");
+
+                b.Navigation("Mensajes");
+
+                b.Navigation("Miembros");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Departamento", b =>
-                {
-                    b.Navigation("Usuarios");
-                });
+            {
+                b.Navigation("Usuarios");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Equipo", b =>
-                {
-                    b.Navigation("Integrantes");
-                });
+            {
+                b.Navigation("Integrantes");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Permiso", b =>
-                {
-                    b.Navigation("RolPermisos");
-                });
+            {
+                b.Navigation("RolPermisos");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Proyecto", b =>
-                {
-                    b.Navigation("Actividades");
+            {
+                b.Navigation("Actividades");
 
-                    b.Navigation("Adjuntos");
+                b.Navigation("Adjuntos");
 
-                    b.Navigation("Comentarios");
+                b.Navigation("Comentarios");
 
-                    b.Navigation("Fases");
+                b.Navigation("Fases");
 
-                    b.Navigation("Integrantes");
-                });
+                b.Navigation("Integrantes");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Rol", b =>
-                {
-                    b.Navigation("RolPermisos");
+            {
+                b.Navigation("RolPermisos");
 
-                    b.Navigation("UsuarioRoles");
-                });
+                b.Navigation("UsuarioRoles");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Ticket", b =>
-                {
-                    b.Navigation("Adjuntos");
+            {
+                b.Navigation("Adjuntos");
 
-                    b.Navigation("Comentarios");
+                b.Navigation("Comentarios");
 
-                    b.Navigation("Historial");
+                b.Navigation("Historial");
 
-                    b.Navigation("TicketActividades");
-                });
+                b.Navigation("TicketActividades");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Unidad", b =>
-                {
-                    b.Navigation("Departamentos");
+            {
+                b.Navigation("Departamentos");
 
-                    b.Navigation("Equipos");
+                b.Navigation("Equipos");
 
-                    b.Navigation("UsuarioUnidades");
-                });
+                b.Navigation("UsuarioUnidades");
+            });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Usuario", b =>
-                {
-                    b.Navigation("RefreshTokens");
+            {
+                b.Navigation("RefreshTokens");
 
-                    b.Navigation("UsuarioEquipos");
+                b.Navigation("UsuarioEquipos");
 
-                    b.Navigation("UsuarioRoles");
+                b.Navigation("UsuarioRoles");
 
-                    b.Navigation("UsuarioUnidades");
-                });
+                b.Navigation("UsuarioUnidades");
+            });
 #pragma warning restore 612, 618
         }
     }

@@ -49,6 +49,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Notificacion> Notificaciones => Set<Notificacion>();
     public DbSet<ReglaAutomatizacion> ReglasAutomatizacion => Set<ReglaAutomatizacion>();
 
+    public DbSet<ChatGrupo> ChatGrupos => Set<ChatGrupo>();
+    public DbSet<ChatGrupoMiembro> ChatGrupoMiembros => Set<ChatGrupoMiembro>();
+    public DbSet<ChatMensaje> ChatMensajes => Set<ChatMensaje>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -61,6 +65,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder.Entity<ProyectoIntegrante>().HasKey(x => new { x.ProyectoId, x.UsuarioId });
         modelBuilder.Entity<ActividadAsignado>().HasKey(x => new { x.ActividadId, x.UsuarioId });
         modelBuilder.Entity<TicketActividad>().HasKey(x => new { x.TicketId, x.ActividadId });
+        modelBuilder.Entity<ChatGrupoMiembro>().HasKey(x => new { x.ChatGrupoId, x.UsuarioId });
 
         // Índices únicos
         modelBuilder.Entity<Unidad>().HasIndex(x => x.Codigo).IsUnique();
@@ -367,5 +372,66 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .WithMany()
             .HasForeignKey(x => x.SubidoPorId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Módulo de Chat estilo WhatsApp
+        modelBuilder.Entity<ChatGrupo>()
+            .HasOne(x => x.Unidad)
+            .WithMany()
+            .HasForeignKey(x => x.UnidadId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ChatGrupo>()
+            .HasOne(x => x.CreadoPor)
+            .WithMany()
+            .HasForeignKey(x => x.CreadoPorId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ChatGrupo>()
+            .HasOne(x => x.ActividadActiva)
+            .WithMany()
+            .HasForeignKey(x => x.ActividadActivaId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<ChatGrupoMiembro>()
+            .HasOne(x => x.ChatGrupo)
+            .WithMany(g => g.Miembros)
+            .HasForeignKey(x => x.ChatGrupoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ChatGrupoMiembro>()
+            .HasOne(x => x.Usuario)
+            .WithMany()
+            .HasForeignKey(x => x.UsuarioId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ChatMensaje>()
+            .HasOne(x => x.ChatGrupo)
+            .WithMany(g => g.Mensajes)
+            .HasForeignKey(x => x.ChatGrupoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ChatMensaje>()
+            .HasOne(x => x.Usuario)
+            .WithMany()
+            .HasForeignKey(x => x.UsuarioId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ChatMensaje>()
+            .HasOne(x => x.Actividad)
+            .WithMany(a => a.ChatMensajes)
+            .HasForeignKey(x => x.ActividadId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<ChatMensaje>()
+            .HasOne(x => x.RespondidoPorUsuario)
+            .WithMany()
+            .HasForeignKey(x => x.RespondidoPorUsuarioId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Actividad>()
+            .HasOne(x => x.ChatGrupo)
+            .WithMany(g => g.Actividades)
+            .HasForeignKey(x => x.ChatGrupoId)
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

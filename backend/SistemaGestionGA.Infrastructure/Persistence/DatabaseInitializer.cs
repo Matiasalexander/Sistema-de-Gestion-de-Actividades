@@ -49,6 +49,27 @@ public static class DatabaseInitializer
         }
         await db.SaveChangesAsync();
 
+        // Asegurar que el rol ADMIN tenga todos los permisos existentes (incluyendo chat.*)
+        var rolAdminDb = await db.Roles.Include(r => r.RolPermisos).FirstOrDefaultAsync(r => r.Codigo == "ADMIN");
+        if (rolAdminDb != null)
+        {
+            var permisosAsignados = rolAdminDb.RolPermisos.Select(rp => rp.PermisoId).ToHashSet();
+            foreach (var permiso in permisosExistentes.Values)
+            {
+                if (!permisosAsignados.Contains(permiso.Id))
+                {
+                    db.RolPermisos.Add(new RolPermiso { RolId = rolAdminDb.Id, PermisoId = permiso.Id });
+                }
+            }
+            await db.SaveChangesAsync();
+        }
+
+        // Asegurar grupo de chat demostrativo tipo WhatsApp
+        if (await db.Unidades.AnyAsync() && !await db.ChatGrupos.AnyAsync())
+        {
+            await SembrarChatWhatsAppInicialAsync(db);
+        }
+
         if (await db.Unidades.AnyAsync())
             return;
 
@@ -733,5 +754,107 @@ public static class DatabaseInitializer
         });
 
         await db.SaveChangesAsync();
+
+        await SembrarChatWhatsAppInicialAsync(db);
+    }
+
+    private static async Task SembrarChatWhatsAppInicialAsync(ApplicationDbContext db)
+    {
+        var adminUser = await db.Usuarios.FirstOrDefaultAsync(u => u.NombreUsuario == "admin");
+        var sofiaUser = await db.Usuarios.FirstOrDefaultAsync(u => u.NombreUsuario == "sofia.torres") ?? adminUser;
+        var carlosUser = await db.Usuarios.FirstOrDefaultAsync(u => u.NombreUsuario == "carlos.mendez") ?? adminUser;
+        var unidad = await db.Unidades.FirstOrDefaultAsync();
+
+        if (adminUser == null || unidad == null) return;
+
+        var grupoDemo = new ChatGrupo
+        {
+            Nombre = "Soporte Regional & Proyectos GA",
+            Descripcion = "Canal directo estilo WhatsApp para atención a requerimientos, seguimiento de actividades y resolución guiada.",
+            UnidadId = unidad.Id,
+            CreadoPorId = adminUser.Id,
+            Activo = true,
+            FechaCreacionUtc = DateTime.UtcNow.AddHours(-2)
+        };
+
+        grupoDemo.Miembros.Add(new ChatGrupoMiembro { UsuarioId = adminUser.Id, EsAdmin = true, FechaUnionUtc = DateTime.UtcNow.AddHours(-2) });
+        if (sofiaUser.Id != adminUser.Id)
+            grupoDemo.Miembros.Add(new ChatGrupoMiembro { UsuarioId = sofiaUser.Id, EsAdmin = false, FechaUnionUtc = DateTime.UtcNow.AddHours(-2) });
+        if (carlosUser.Id != adminUser.Id)
+            grupoDemo.Miembros.Add(new ChatGrupoMiembro { UsuarioId = carlosUser.Id, EsAdmin = false, FechaUnionUtc = DateTime.UtcNow.AddHours(-2) });
+
+        var act1 = await db.Actividades.FirstOrDefaultAsync();
+        if (act1 != null)
+        {
+            grupoDemo.ActividadActivaId = act1.Id;
+            //act1.ChatGrupoId = grupoDemo.Id;
+
+            grupoDemo.Mensajes.Add(new ChatMensaje
+            {
+                UsuarioId = adminUser.Id,
+                Texto = "¡Bienvenidos al canal WhatsApp de Soporte y Actividades GA! Cualquier solicitud que escriban aquí generará automáticamente su actividad de seguimiento.",
+                TipoMensaje = "Sistema",
+                FechaCreacionUtc = DateTime.UtcNow.AddMinutes(-40)
+            });
+
+            grupoDemo.Mensajes.Add(new ChatMensaje
+            {
+                UsuarioId = sofiaUser.Id,
+                Texto = "Hola equipo, necesitamos revisar la sincronización de inventario con las terminales de Monterrey.",
+                TipoMensaje = "Texto",
+                ActividadId = act1.Id,
+                FechaCreacionUtc = DateTime.UtcNow.AddMinutes(-30)
+            });
+
+            grupoDemo.Mensajes.Add(new ChatMensaje
+            {
+                UsuarioId = adminUser.Id,
+                ActividadId = act1.Id,
+                Texto = $"📌 Se vinculó la actividad {act1.Codigo} ('{act1.Titulo}') para dar seguimiento a esta solicitud.",
+                TipoMensaje = "Sistema",
+                FechaCreacionUtc = DateTime.UtcNow.AddMinutes(-25)
+            });
+
+            grupoDemo.Mensajes.Add(new ChatMensaje
+            {
+                UsuarioId = carlosUser.Id,
+                ActividadId = act1.Id,
+                Texto = "Ya validamos la conectividad VPN y se configuraron las reglas de enrutamiento necesarias.",
+                TipoMensaje = "Texto",
+                FechaCreacionUtc = DateTime.UtcNow.AddMinutes(-15)
+            });
+
+            var opciones = new[]
+            {
+                new { id = "resolver", texto = "✅ Sí, marcar como resuelto", accion = "RESOLVER_ACTIVIDAD" },
+                new { id = "continuar", texto = "⏳ Aún no, requiero más apoyo", accion = "CONTINUAR" }
+            };
+
+            grupoDemo.Mensajes.Add(new ChatMensaje
+            {
+                UsuarioId = adminUser.Id,
+                ActividadId = act1.Id,
+                Texto = $"Estimada {sofiaUser.NombreCompleto}, ¿el requerimiento de la actividad {act1.Codigo} quedó resuelto satisfactoriamente? Elige tu respuesta para que el sistema actualice el seguimiento:",
+                TipoMensaje = "PreguntaInteractiva",
+                OpcionesInteractivasJson = System.Text.Json.JsonSerializer.Serialize(opciones),
+                FechaCreacionUtc = DateTime.UtcNow.AddMinutes(-5)
+            });
+        }
+
+        //db.ChatGrupos.Add(grupoDemo);
+        //await db.SaveChangesAsync();
+
+        db.ChatGrupos.Add(grupoDemo);
+
+        // Primero guardar el grupo para obtener su ID real
+        await db.SaveChangesAsync();
+
+        // Después vincular la actividad con el grupo creado
+        if (act1 != null)
+        {
+            act1.ChatGrupoId = grupoDemo.Id;
+            await db.SaveChangesAsync();
+        }
+
     }
 }

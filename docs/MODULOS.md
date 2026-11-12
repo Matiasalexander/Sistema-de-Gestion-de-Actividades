@@ -38,3 +38,19 @@
 - Indicadores y gráficos en tiempo real filtrables por unidad y proyecto.
 - Exportación real a **CSV / Excel** (con BOM UTF-8 para compatibilidad directa con Microsoft Excel) e impresión PDF.
 - Configuración de políticas SLA y reglas de automatización (`CUANDO -> SI -> ENTONCES`).
+
+## 7. Módulo de Chat WhatsApp Corporativo y Seguimiento Interactivo (`/chat`)
+- **Interfaz Idéntica a WhatsApp Web**: Panel lateral de conversaciones con avatares, últimos mensajes, marcas de tiempo, insignias de no leídos y chip de actividad vinculada.
+- **Administración de Grupos y Miembros**: Creación de canales y grupos por unidad con selección múltiple de participantes del directorio.
+- **Creación y Seguimiento Automático de Actividades**:
+  - Al escribir en un grupo que no tiene actividad activa, el sistema genera automáticamente una nueva `Actividad` operativa vinculada al grupo.
+  - Los mensajes subsecuentes alimentan la bitácora e historial de auditoría de la actividad (`ActividadHistorial`).
+- **Sincronización Bidireccional con la Vista de Actividades (`/actividades`)**:
+  - En la tabla de actividades se indica con insignia verde si cuenta con canal WhatsApp.
+  - En el panel lateral de detalle de la actividad se incluye el panel en vivo de **Seguimiento Chat WhatsApp**, permitiendo enviar respuestas directas sin salir del Work OS.
+  - Si una actividad no tiene chat, dispone del botón `🚀 Iniciar Canal WhatsApp`.
+- **Cierre y Resolución Interactiva con Preguntas de Opción Múltiple**:
+  - El equipo o administrador puede enviar una tarjeta interactiva: *"¿Quedó resuelto a satisfacción?"*.
+  - El cliente o usuario elige en el chat entre opciones tipo botones (`✅ Sí, marcar como resuelto` / `⏳ Aún no, requiero más apoyo`).
+  - Al seleccionar resolver, la actividad pasa automáticamente a estado **COMPLETADA** con **100% de avance** y registro de fecha real de finalización.
+- **Tiempo Real mediante SignalR**: Difusión instantánea de mensajes y actualizaciones de estado a todos los participantes conectados mediante `/hubs/notificaciones`.

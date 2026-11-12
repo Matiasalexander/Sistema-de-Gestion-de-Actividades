@@ -848,7 +848,8 @@ public class ActividadesController(
             .Include(a => a.Dependencias).ThenInclude(d => d.ActividadPredecesora).ThenInclude(p => p!.EstadoActividad)
             .Include(a => a.Tiempos).ThenInclude(t => t.Usuario)
             .Include(a => a.Historial).ThenInclude(h => h.Usuario)
-            .Include(a => a.TicketActividades).ThenInclude(ta => ta.Ticket);
+            .Include(a => a.TicketActividades).ThenInclude(ta => ta.Ticket)
+            .Include(a => a.ChatGrupo);
 
     private static ActividadDto MapearActividadDto(Actividad a)
     {
@@ -912,7 +913,9 @@ public class ActividadesController(
             a.Historial.OrderByDescending(h => h.FechaCambioUtc).Select(h => new ActividadHistorialDto(
                 h.Id, h.ActividadId, h.Usuario?.NombreCompleto, h.TipoCambio, h.ValorAnterior,
                 h.ValorNuevo, h.Detalle, h.FechaCambioUtc)).ToList(),
-            a.TicketActividades.Where(ta => ta.Ticket != null).Select(ta => ta.Ticket!.Folio).ToList());
+            a.TicketActividades.Where(ta => ta.Ticket != null).Select(ta => ta.Ticket!.Folio).ToList(),
+            a.ChatGrupoId,
+            a.ChatGrupo?.Nombre);
     }
 }
 

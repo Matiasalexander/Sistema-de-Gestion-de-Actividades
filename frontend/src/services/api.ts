@@ -261,6 +261,8 @@ export interface ActividadItem {
   tiempos: TiempoActividad[];
   historial: ActividadHistorial[];
   ticketsVinculadosFolios: string[];
+  chatGrupoId?: number;
+  chatGrupoNombre?: string;
 }
 
 export interface ComentarioItem {
@@ -452,6 +454,63 @@ export interface HistorialAccesoItem {
   motivo?: string;
   ipAddress?: string;
   fechaIntentoUtc: string;
+}
+
+export interface ChatMiembroItem {
+  usuarioId: number;
+  nombreCompleto: string;
+  nombreUsuario: string;
+  email: string;
+  cargo?: string;
+  esAdmin: boolean;
+  fechaUnionUtc: string;
+}
+
+export interface ChatGrupoItem {
+  id: number;
+  nombre: string;
+  descripcion?: string;
+  unidadId: number;
+  unidadNombre: string;
+  actividadActivaId?: number;
+  actividadActivaCodigo?: string;
+  actividadActivaTitulo?: string;
+  actividadActivaEstado?: string;
+  actividadActivaEstadoColor?: string;
+  creadoPorId: number;
+  creadoPorNombre: string;
+  fechaCreacionUtc: string;
+  activo: boolean;
+  totalMiembros: number;
+  ultimoMensaje?: string;
+  ultimoMensajeFechaUtc?: string;
+  miembros: ChatMiembroItem[];
+}
+
+export interface OpcionInteractiva {
+  id: string;
+  texto: string;
+  accion: string;
+  color?: string;
+}
+
+export interface ChatMensajeItem {
+  id: number;
+  chatGrupoId: number;
+  usuarioId: number;
+  nombreUsuario: string;
+  nombreCompleto: string;
+  actividadId?: number;
+  actividadCodigo?: string;
+  texto: string;
+  tipoMensaje: string; // 'Texto' | 'Sistema' | 'PreguntaInteractiva' | 'RespuestaInteractiva'
+  opcionesInteractivasJson?: string;
+  opcionSeleccionada?: string;
+  respondidoPorUsuarioId?: number;
+  respondidoPorNombre?: string;
+  fechaRespuestaUtc?: string;
+  fechaCreacionUtc: string;
+  esMio: boolean;
 }
 
 const TOKEN_KEY = 'sga_access_token';

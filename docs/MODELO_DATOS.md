@@ -36,8 +36,20 @@ erDiagram
     CalendariosSla ||--o{ PoliticasSla : define_horario
     Tickets ||--o{ TicketActividades : genera_vincula
     Actividades ||--o{ TicketActividades : atiende
+    Unidades ||--o{ ChatGrupos : aloja
+    ChatGrupos ||--o{ ChatGrupoMiembros : integra
+    Usuarios ||--o{ ChatGrupoMiembros : participa
+    ChatGrupos ||--o{ ChatMensajes : contiene
+    ChatGrupos ||--o| Actividades : vincula_activa
+    Actividades ||--o{ ChatMensajes : audita_seguimiento
 ```
 
-## 3. Reglas de Integridad en SQL Server
+## 3. Tablas del Módulo de Chat WhatsApp
+1. **`ChatGrupos`**: Canales de chat por unidad (`Id`, `Nombre`, `Descripcion`, `UnidadId`, `CreadoPorId`, `Activo`, `ActividadActivaId`, etc.).
+2. **`ChatGrupoMiembros`**: Integrantes del grupo con clave compuesta (`ChatGrupoId`, `UsuarioId`, `EsAdmin`, `FechaUnionUtc`).
+3. **`ChatMensajes`**: Historial de mensajes tipo texto, sistema, preguntas y respuestas interactivas (`TipoMensaje`, `OpcionesInteractivasJson`, `OpcionSeleccionada`, `RespondidoPorUsuarioId`, `FechaRespuestaUtc`, etc.).
+4. **Vinculación con `Actividades`**: `Actividades.ChatGrupoId` permite que los mensajes de chat actualicen en tiempo real la actividad y que respuestas interactivas marquen la resolución al 100%.
+
+## 4. Reglas de Integridad en SQL Server
 - Todas las fechas de auditoría y eventos se almacenan en **UTC** (`DATETIME2` con `SYSUTCDATETIME()`).
 - Se configuraron comportamientos `ON DELETE RESTRICT` en relaciones cruzadas entre `Unidades`, `Proyectos`, `Actividades` y `Tickets` para evitar rutas de cascada múltiples en SQL Server y proteger la integridad histórica.
