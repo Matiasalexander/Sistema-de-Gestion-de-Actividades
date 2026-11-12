@@ -18,7 +18,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 var usarInMemory = builder.Configuration.GetValue<bool>("UseInMemoryDatabase");
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Server=localhost;Database=SistemaGestionGA;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true";
+    ?? "SERVER=209.35.185.147,5003; Database=SistemaGestionGA; User ID = AB; Password = 121278Aa; Encrypt = True; Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true";
 
 if (!usarInMemory)
 {
@@ -132,6 +132,49 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider
+        .GetRequiredService<ApplicationDbContext>();
+
+    try
+    {
+        await db.Database.OpenConnectionAsync();
+
+        Console.WriteLine("================================");
+        Console.WriteLine("CONEXIÓN SQL EXITOSA DESDE .NET");
+        Console.WriteLine($"Base de datos: {db.Database.GetDbConnection().Database}");
+        Console.WriteLine($"Usuario: {db.Database.GetDbConnection().DataSource}");
+        Console.WriteLine("================================");
+
+        await db.Database.CloseConnectionAsync();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("ERROR DE CONEXIÓN DESDE .NET:");
+        Console.WriteLine(ex.ToString());
+    }
+}
+var connectionBuilder =
+    new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(connectionString);
+
+Console.WriteLine("========== CONFIGURACIÓN SQL ==========");
+Console.WriteLine($"Servidor: {connectionBuilder.DataSource}");
+Console.WriteLine($"Base de datos: {connectionBuilder.InitialCatalog}");
+Console.WriteLine($"Usuario: {connectionBuilder.UserID}");
+Console.WriteLine($"Autenticación integrada: {connectionBuilder.IntegratedSecurity}");
+Console.WriteLine("=======================================");
+
+Console.WriteLine($"Entorno: {builder.Environment.EnvironmentName}");
+Console.WriteLine($"Archivo base: {builder.Configuration.GetConnectionString("DefaultConnection") != null}");
+
+var csBuilder =
+    new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(connectionString);
+
+Console.WriteLine($"Servidor: {csBuilder.DataSource}");
+Console.WriteLine($"Base de datos: {csBuilder.InitialCatalog}");
+Console.WriteLine($"Usuario: [{csBuilder.UserID}]");
+Console.WriteLine($"Autenticación integrada: {csBuilder.IntegratedSecurity}");
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
 

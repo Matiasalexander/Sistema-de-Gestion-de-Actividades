@@ -11,11 +11,21 @@ public static class DatabaseInitializer
     {
         if (aplicarMigraciones && db.Database.IsRelational())
         {
+            Console.WriteLine("Iniciando aplicación de migraciones...");
+
+            var migracionesPendientes =
+                await db.Database.GetPendingMigrationsAsync();
+
+            Console.WriteLine("Migraciones pendientes:");
+
+            foreach (var migracion in migracionesPendientes)
+            {
+                Console.WriteLine($" - {migracion}");
+            }
+
             await db.Database.MigrateAsync();
-        }
-        else
-        {
-            await db.Database.EnsureCreatedAsync();
+
+            Console.WriteLine("Migraciones aplicadas correctamente.");
         }
 
         // 1. Semilla de Permisos
