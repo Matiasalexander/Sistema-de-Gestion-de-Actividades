@@ -14,6 +14,7 @@ import {
   MessageSquare,
   History,
   X,
+  Trash2,
 } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
 import {
@@ -34,6 +35,8 @@ export const TicketsPage: React.FC = () => {
   const [slaFiltro, setSlaFiltro] = useState('');
   const [modalNuevo, setModalNuevo] = useState(false);
   const [ticketActivo, setTicketActivo] = useState<TicketItem | null>(null);
+  const [modalEliminarTicket, setModalEliminarTicket] = useState(false);
+  const [motivoEliminacion, setMotivoEliminacion] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Formulario nuevo ticket
@@ -84,6 +87,22 @@ export const TicketsPage: React.FC = () => {
     queryClient.invalidateQueries({ queryKey: ['tickets'] });
     queryClient.invalidateQueries({ queryKey: ['dashboard'] });
   };
+
+  const eliminarTicketMutation = useMutation({
+    mutationFn: (id: number) =>
+      apiFetch(`/api/tickets/${id}${motivoEliminacion ? `?motivo=${encodeURIComponent(motivoEliminacion)}` : ''}`, {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      setTicketActivo(null);
+      setModalEliminarTicket(false);
+      setMotivoEliminacion('');
+      setErrorMsg(null);
+    },
+    onError: (err: Error) => setErrorMsg(err.message),
+  });
 
   const crearTicketMutation = useMutation({
     mutationFn: () =>
@@ -363,10 +382,25 @@ export const TicketsPage: React.FC = () => {
                         {t.responsableNombre || 'Sin asignar'}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right">
-                      <button className="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100">
+                    <td className="py-3 px-4 text-right space-x-1" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => setTicketActivo(t)}
+                        className="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 cursor-pointer"
+                      >
                         Gestionar
                       </button>
+                      {tienePermiso('tickets.eliminar') && (
+                        <button
+                          onClick={() => {
+                            setTicketActivo(t);
+                            setModalEliminarTicket(true);
+                          }}
+                          title="Cancelar o eliminar ticket"
+                          className="p-1.5 rounded-lg border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 inline" />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -393,12 +427,23 @@ export const TicketsPage: React.FC = () => {
                 <h2 className="text-lg font-bold mt-1">{ticketActivo.titulo}</h2>
                 <p className="text-xs text-slate-500 mt-1">{ticketActivo.descripcion}</p>
               </div>
-              <button
-                onClick={() => setTicketActivo(null)}
-                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                {tienePermiso('tickets.eliminar') && (
+                  <button
+                    onClick={() => setModalEliminarTicket(true)}
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 text-xs font-semibold cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Eliminar
+                  </button>
+                )}
+                <button
+                  onClick={() => setTicketActivo(null)}
+                  className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Botonera de Flujo de Estados y Asignación */}
@@ -713,6 +758,67 @@ export const TicketsPage: React.FC = () => {
                 className="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold"
               >
                 Registrar Ticket
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CONFIRMAR CANCELACIÓN / ELIMINACIÓN DE TICKET */}
+      {modalEliminarTicket && ticketActivo && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center font-bold">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                ¿Cancelar o eliminar ticket?
+              </h3>
+              <p className="text-sm text-slate-500 mt-1">
+                Está a punto de cancelar y cerrar el ticket{' '}
+                <strong className="text-slate-900 dark:text-slate-200">
+                  {ticketActivo.folio}: {ticketActivo.titulo}
+                </strong>
+                .
+              </p>
+              <p className="text-xs text-slate-400 mt-2">
+                El ticket pasará al estado final <strong>CANCELADO</strong>, deteniendo el reloj de SLA y registrando el motivo en el historial de eventos del ticket y auditoría general.
+              </p>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                Motivo de cancelación / eliminación (opcional)
+              </label>
+              <textarea
+                value={motivoEliminacion}
+                onChange={(e) => setMotivoEliminacion(e.target.value)}
+                placeholder="Ejemplo: Ticket duplicado, error en solicitud o cancelado por solicitante..."
+                rows={3}
+                className="w-full text-xs p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+            {errorMsg && (
+              <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-xs text-red-600 dark:text-red-400">
+                {errorMsg}
+              </div>
+            )}
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setModalEliminarTicket(false)}
+                disabled={eliminarTicketMutation.isPending}
+                className="px-4 py-2 rounded-xl text-sm font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              >
+                Volver
+              </button>
+              <button
+                type="button"
+                onClick={() => eliminarTicketMutation.mutate(ticketActivo.id)}
+                disabled={eliminarTicketMutation.isPending}
+                className="px-4 py-2 rounded-xl text-sm font-semibold bg-red-600 hover:bg-red-700 text-white cursor-pointer flex items-center gap-1.5"
+              >
+                {eliminarTicketMutation.isPending ? 'Cancelando...' : 'Confirmar cancelación'}
               </button>
             </div>
           </div>

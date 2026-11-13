@@ -148,7 +148,8 @@ public class ChatController(
 
         var esAdminGrupo = grupo.Miembros.Any(m => m.UsuarioId == uid && m.EsAdmin) || grupo.CreadoPorId == uid;
         var tienePermisoAdmin = currentUser.AccesoGlobalUnidades ||
-            (currentUser.UnidadesAutorizadas.Contains(grupo.UnidadId) && currentUser.TienePermiso(PermisosConstantes.ChatCrear));
+            (currentUser.UnidadesAutorizadas.Contains(grupo.UnidadId) &&
+             (currentUser.TienePermiso(PermisosConstantes.ChatEliminar) || currentUser.TienePermiso(PermisosConstantes.ChatCrear)));
 
         if (!esAdminGrupo && !tienePermisoAdmin)
         {

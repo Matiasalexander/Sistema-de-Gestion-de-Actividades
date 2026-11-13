@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Users, Plus, UserCheck } from 'lucide-react';
+import { Users, Plus, UserCheck, Trash2 } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
 import { apiFetch, EquipoItem, UnidadItem, UsuarioLista } from '../../services/api';
 
@@ -9,6 +9,7 @@ export const EquiposPage: React.FC = () => {
   const queryClient = useQueryClient();
 
   const [modalAbierto, setModalAbierto] = useState(false);
+  const [equipoAEliminar, setEquipoAEliminar] = useState<EquipoItem | null>(null);
   const [codigo, setCodigo] = useState('');
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
@@ -52,6 +53,14 @@ export const EquiposPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['equipos'] });
       setModalAbierto(false);
+    },
+  });
+
+  const eliminarEquipoMutation = useMutation({
+    mutationFn: (id: number) => apiFetch(`/api/equipos/${id}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['equipos'] });
+      setEquipoAEliminar(null);
     },
   });
 
@@ -102,11 +111,22 @@ export const EquiposPage: React.FC = () => {
                   <div className="text-xs text-slate-400">{eq.unidadNombre}</div>
                 </div>
               </div>
-              {eq.liderNombre && (
-                <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-medium flex items-center gap-1">
-                  <UserCheck className="w-3.5 h-3.5" /> Líder: {eq.liderNombre}
-                </span>
-              )}
+              <div className="flex items-center gap-1.5">
+                {eq.liderNombre && (
+                  <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-medium flex items-center gap-1">
+                    <UserCheck className="w-3.5 h-3.5" /> Líder: {eq.liderNombre}
+                  </span>
+                )}
+                {(tienePermiso('equipos.eliminar') || tienePermiso('equipos.gestionar')) && (
+                  <button
+                    onClick={() => setEquipoAEliminar(eq)}
+                    title="Eliminar equipo de trabajo"
+                    className="p-1 rounded-lg border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
 
             <p className="text-xs text-slate-500">{eq.descripcion}</p>
@@ -222,6 +242,50 @@ export const EquiposPage: React.FC = () => {
                 className="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold"
               >
                 Guardar Equipo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CONFIRMAR ELIMINACIÓN DE EQUIPO */}
+      {equipoAEliminar && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 text-xs">
+            <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center font-bold">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                ¿Eliminar equipo de trabajo?
+              </h3>
+              <p className="text-slate-500 mt-1">
+                Está a punto de eliminar el equipo{' '}
+                <strong className="text-slate-900 dark:text-slate-200">
+                  {equipoAEliminar.codigo}: {equipoAEliminar.nombre}
+                </strong>
+                .
+              </p>
+              <p className="text-slate-400 mt-2">
+                Los {equipoAEliminar.integrantes.length} integrantes serán desvinculados de este equipo. Las actividades o tickets que hacían referencia a esta célula quedarán sin equipo asignado y se registrará en la auditoría.
+              </p>
+            </div>
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setEquipoAEliminar(null)}
+                disabled={eliminarEquipoMutation.isPending}
+                className="px-4 py-2 rounded-xl font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => eliminarEquipoMutation.mutate(equipoAEliminar.id)}
+                disabled={eliminarEquipoMutation.isPending}
+                className="px-4 py-2 rounded-xl font-semibold bg-red-600 hover:bg-red-700 text-white cursor-pointer flex items-center gap-1.5"
+              >
+                {eliminarEquipoMutation.isPending ? 'Eliminando...' : 'Confirmar eliminación'}
               </button>
             </div>
           </div>

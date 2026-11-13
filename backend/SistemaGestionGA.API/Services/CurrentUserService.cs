@@ -66,6 +66,16 @@ public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICur
         if (!Autenticado)
             return false;
 
+        var esAdmin = (User != null && (
+            User.IsInRole("SUPER_ADMIN") ||
+            User.IsInRole("ADMIN") ||
+            User.FindAll(ClaimTypes.Role).Any(r => string.Equals(r.Value, "SUPER_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                                                   string.Equals(r.Value, "ADMIN", StringComparison.OrdinalIgnoreCase)))) ||
+            AccesoGlobalUnidades;
+
+        if (esAdmin)
+            return true;
+
         return Permisos.Contains(permiso);
     }
 

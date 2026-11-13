@@ -342,6 +342,85 @@ public class UsuariosController(
         return Ok(new { usuario.Id, usuario.Activo });
     }
 
+    [HttpDelete("{id:int}")]
+    [RequierePermiso(PermisosConstantes.UsuariosEliminar)]
+    public async Task<IActionResult> EliminarUsuario(int id, CancellationToken ct = default)
+    {
+        if (currentUser.UsuarioId == id)
+        {
+            throw new DomainRuleException("No puede eliminar su propia cuenta de usuario.", "AUTO_ELIMINACION_PROHIBIDA", 400);
+        }
+
+        var usuario = await db.Usuarios
+            .Include(u => u.UsuarioRoles)
+            .Include(u => u.UsuarioUnidades)
+            .Include(u => u.UsuarioEquipos)
+            .Include(u => u.RefreshTokens)
+            .FirstOrDefaultAsync(u => u.Id == id, ct)
+            ?? throw new DomainRuleException("Usuario no encontrado.", "NO_ENCONTRADO", 404);
+
+        if (!currentUser.AccesoGlobalUnidades &&
+            !usuario.UsuarioUnidades.Any(uu => currentUser.UnidadesAutorizadas.Contains(uu.UnidadId)))
+        {
+            throw new ForbiddenScopeException();
+        }
+
+        var tieneHistorial = await db.Actividades.AnyAsync(a => a.CreadoPorId == id || a.Asignados.Any(asig => asig.UsuarioId == id), ct) ||
+                             await db.Tickets.AnyAsync(t => t.SolicitanteId == id || t.ResponsableId == id, ct) ||
+                             await db.AuditoriaEventos.AnyAsync(ae => ae.UsuarioId == id, ct);
+
+        if (tieneHistorial)
+        {
+            usuario.Activo = false;
+            usuario.FechaModificacionUtc = DateTime.UtcNow;
+
+            foreach (var rt in usuario.RefreshTokens.Where(t => t.FechaRevocacionUtc == null))
+            {
+                rt.FechaRevocacionUtc = DateTime.UtcNow;
+                rt.RevocadoPorIp = currentUser.IpAddress;
+                rt.MotivoRevocacion = "Baja definitiva de cuenta de usuario";
+            }
+
+            db.AuditoriaEventos.Add(new AuditoriaEvento
+            {
+                UsuarioId = currentUser.UsuarioId,
+                NombreUsuario = currentUser.NombreUsuario,
+                Modulo = "Usuarios",
+                Accion = "ELIMINAR_USUARIO_LOGICO",
+                Entidad = "Usuario",
+                EntidadId = usuario.Id.ToString(),
+                Resumen = $"Baja lógica y revocación de accesos del usuario '{usuario.NombreUsuario}' ({usuario.NombreCompleto}) con historial",
+                IpAddress = currentUser.IpAddress
+            });
+
+            await db.SaveChangesAsync(ct);
+            return Ok(new { usuario.Id, borradoFisico = false, mensaje = "El usuario tiene historial operativo y fue dado de baja definitivamente." });
+        }
+        else
+        {
+            db.UsuarioRoles.RemoveRange(usuario.UsuarioRoles);
+            db.UsuarioUnidades.RemoveRange(usuario.UsuarioUnidades);
+            db.UsuarioEquipos.RemoveRange(usuario.UsuarioEquipos);
+            db.RefreshTokens.RemoveRange(usuario.RefreshTokens);
+            db.Usuarios.Remove(usuario);
+
+            db.AuditoriaEventos.Add(new AuditoriaEvento
+            {
+                UsuarioId = currentUser.UsuarioId,
+                NombreUsuario = currentUser.NombreUsuario,
+                Modulo = "Usuarios",
+                Accion = "ELIMINAR_USUARIO_FISICO",
+                Entidad = "Usuario",
+                EntidadId = usuario.Id.ToString(),
+                Resumen = $"Eliminación física del usuario '{usuario.NombreUsuario}' ({usuario.NombreCompleto}) sin historial",
+                IpAddress = currentUser.IpAddress
+            });
+
+            await db.SaveChangesAsync(ct);
+            return Ok(new { id, borradoFisico = true, mensaje = "Usuario eliminado exitosamente del sistema." });
+        }
+    }
+
     [HttpPost("{id:int}/reset-password")]
     [RequierePermiso(PermisosConstantes.UsuariosEditar)]
     public async Task<IActionResult> ResetPasswordAdministrativo(int id, [FromBody] ResetPasswordAdminDto dto, CancellationToken ct)
@@ -736,6 +815,56 @@ public class RolesYOrganizacionController(
 
         var creado = await ListarEquipos(dto.UnidadId, ct);
         return Ok(creado.Value!.First(x => x.Id == equipo.Id));
+    }
+
+    [HttpDelete("equipos/{id:int}")]
+    [RequierePermiso(PermisosConstantes.EquiposEliminar)]
+    public async Task<IActionResult> EliminarEquipo(int id, CancellationToken ct)
+    {
+        var equipo = await db.Equipos
+            .Include(e => e.Integrantes)
+            .FirstOrDefaultAsync(e => e.Id == id, ct)
+            ?? throw new DomainRuleException("Equipo no encontrado.", "NO_ENCONTRADO", 404);
+
+        currentUser.ExigirAlcanceUnidad(equipo.UnidadId);
+
+        db.UsuarioEquipos.RemoveRange(equipo.Integrantes);
+
+        var actividades = await db.Actividades.Where(a => a.EquipoId == id).ToListAsync(ct);
+        foreach (var act in actividades)
+        {
+            act.EquipoId = null;
+        }
+
+        var tickets = await db.Tickets.Where(t => t.EquipoAsignadoId == id).ToListAsync(ct);
+        foreach (var tkt in tickets)
+        {
+            tkt.EquipoAsignadoId = null;
+        }
+
+        var proyectos = await db.Proyectos.Where(p => p.EquipoId == id).ToListAsync(ct);
+        foreach (var proy in proyectos)
+        {
+            proy.EquipoId = null;
+        }
+
+        db.Equipos.Remove(equipo);
+
+        db.AuditoriaEventos.Add(new AuditoriaEvento
+        {
+            UsuarioId = currentUser.UsuarioId,
+            NombreUsuario = currentUser.NombreUsuario,
+            Modulo = "Organización",
+            Accion = "ELIMINAR_EQUIPO",
+            Entidad = "Equipo",
+            EntidadId = equipo.Id.ToString(),
+            UnidadId = equipo.UnidadId,
+            Resumen = $"Eliminación del equipo de trabajo '{equipo.Nombre}' ({equipo.Codigo})",
+            IpAddress = currentUser.IpAddress
+        });
+
+        await db.SaveChangesAsync(ct);
+        return Ok(new { id, mensaje = "Equipo eliminado exitosamente." });
     }
 
     [HttpGet("catalogos")]
