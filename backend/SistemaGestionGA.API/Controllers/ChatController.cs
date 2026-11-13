@@ -195,7 +195,10 @@ public class ChatController(
             Accion = "ELIMINAR_GRUPO",
             Entidad = nameof(ChatGrupo),
             EntidadId = id.ToString(),
-            ValoresAnterioresJson = JsonSerializer.Serialize(new { grupo.Id, grupo.Nombre, grupo.UnidadId }),
+            UnidadId = grupo.UnidadId,
+            Resumen = $"Eliminación del grupo de chat '{nombreGrupo}'",
+            ValoresAnteriores = JsonSerializer.Serialize(new { grupo.Id, grupo.Nombre, grupo.UnidadId }),
+            IpAddress = currentUser.IpAddress,
             FechaEventoUtc = DateTime.UtcNow
         });
 

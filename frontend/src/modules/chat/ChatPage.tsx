@@ -1010,6 +1010,13 @@ export const ChatPage: React.FC = () => {
                 actividades que se hayan creado a partir de este grupo se conservarán en el módulo
                 de Actividades con registro en su historial.
               </p>
+
+              {eliminarGrupoMutation.isError && (
+                <p className="text-[11px] p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200/70 dark:border-rose-800/60">
+                  {(eliminarGrupoMutation.error as Error)?.message ||
+                    'Ocurrió un error al eliminar el grupo. Verifica tus permisos.'}
+                </p>
+              )}
             </div>
 
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
