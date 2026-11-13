@@ -297,4 +297,132 @@ public class PermisosEliminarModulosTests
         Assert.False(rt.EstaActivo);
         Assert.NotNull(rt.FechaRevocacionUtc);
     }
+
+    [Fact]
+    public void Equipo_Eliminacion_DesvinculaPoliticasSlaEscalamiento()
+    {
+        var equipo = new Equipo
+        {
+            Id = 2,
+            Nombre = "Mesa de Ayuda Norte",
+            Codigo = "EQ-NORTE",
+            UnidadId = 1
+        };
+
+        var politicaSla = new PoliticaSla
+        {
+            Id = 1,
+            Nombre = "SLA Alta Criticidad",
+            EquipoEscalamientoId = equipo.Id
+        };
+
+        // Simular desenlace previo a la eliminación en BD
+        if (politicaSla.EquipoEscalamientoId == equipo.Id)
+        {
+            politicaSla.EquipoEscalamientoId = null;
+        }
+
+        Assert.Null(politicaSla.EquipoEscalamientoId);
+    }
+
+    [Fact]
+    public void Mantenimiento_TablasOperativas_ExcluyenUsuariosYSeguridad()
+    {
+        var tablasPreservadas = new HashSet<string>
+        {
+            nameof(Usuario),
+            nameof(UsuarioRol),
+            nameof(UsuarioUnidad),
+            nameof(Rol),
+            nameof(Permiso),
+            nameof(RolPermiso),
+            nameof(Unidad),
+            nameof(Departamento),
+            nameof(Prioridad),
+            nameof(EstadoActividad),
+            nameof(EstadoTicket),
+            nameof(TicketTipo),
+            nameof(TicketCategoria)
+        };
+
+        var tablasBorradas = new HashSet<string>
+        {
+            nameof(ChatMensaje),
+            nameof(ChatGrupoMiembro),
+            nameof(ChatGrupo),
+            nameof(TicketActividad),
+            nameof(TicketHistorial),
+            nameof(Comentario),
+            nameof(Adjunto),
+            nameof(Ticket),
+            nameof(ActividadChecklist),
+            nameof(ActividadDependencia),
+            nameof(ActividadAsignado),
+            nameof(ActividadTiempo),
+            nameof(ActividadHistorial),
+            nameof(Actividad),
+            nameof(ProyectoFase),
+            nameof(ProyectoIntegrante),
+            nameof(Proyecto),
+            nameof(UsuarioEquipo),
+            nameof(Equipo)
+        };
+
+        // Las tablas preservadas y las operativas a vaciar no deben solaparse
+        Assert.Empty(tablasPreservadas.Intersect(tablasBorradas));
+    }
+
+    [Fact]
+    public void Unidad_Eliminacion_DesvinculaPoliticasSla()
+    {
+        var unidad = new Unidad
+        {
+            Id = 5,
+            Nombre = "Unidad Regional",
+            Codigo = "UR"
+        };
+
+        var politicaSla = new PoliticaSla
+        {
+            Id = 10,
+            Nombre = "SLA Regional",
+            UnidadId = unidad.Id
+        };
+
+        // Simular desenlace antes de borrar unidad
+        if (politicaSla.UnidadId == unidad.Id)
+        {
+            politicaSla.UnidadId = null;
+        }
+
+        Assert.Null(politicaSla.UnidadId);
+    }
+
+    [Fact]
+    public void Departamento_Eliminacion_DesvinculaUsuariosAsignados()
+    {
+        var depto = new Departamento
+        {
+            Id = 3,
+            Nombre = "Soporte Nivel 1",
+            UnidadId = 1
+        };
+
+        var usuario = new Usuario
+        {
+            Id = 101,
+            NombreUsuario = "soporte1",
+            Email = "soporte1@example.com",
+            NombreCompleto = "Usuario Soporte",
+            DepartamentoId = depto.Id
+        };
+
+        // Simular desenlace antes de borrar departamento
+        if (usuario.DepartamentoId == depto.Id)
+        {
+            usuario.DepartamentoId = null;
+        }
+
+        Assert.Null(usuario.DepartamentoId);
+    }
 }

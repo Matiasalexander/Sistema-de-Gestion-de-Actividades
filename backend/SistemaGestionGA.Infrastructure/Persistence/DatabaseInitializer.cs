@@ -60,11 +60,8 @@ public static class DatabaseInitializer
             await db.SaveChangesAsync();
         }
 
-        // Asegurar grupo de chat demostrativo tipo WhatsApp
-        if (await db.Unidades.AnyAsync() && !await db.ChatGrupos.AnyAsync())
-        {
-            await SembrarChatWhatsAppInicialAsync(db);
-        }
+        // Asegurar grupo de chat demostrativo tipo WhatsApp solo en inicialización inicial limpia
+        // (desactivado para permitir ambiente en blanco cuando se limpian los datos operativos)
 
         if (await db.Unidades.AnyAsync())
             return;

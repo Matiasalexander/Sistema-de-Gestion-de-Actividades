@@ -31,6 +31,7 @@ public static class PermisosConstantes
 
     public const string RolesGestionar = "roles.gestionar";
     public const string UnidadesGestionar = "unidades.gestionar";
+    public const string UnidadesEliminar = "unidades.eliminar";
     public const string EquiposGestionar = "equipos.gestionar";
     public const string EquiposEliminar = "equipos.eliminar";
 
@@ -74,6 +75,7 @@ public static class PermisosConstantes
 
         (RolesGestionar, "Seguridad", "Gestionar Roles", "Administrar roles y permisos", "Permite crear y editar roles y su matriz de permisos en base de datos"),
         (UnidadesGestionar, "Organización", "Gestionar Unidades", "Administrar unidades y departamentos", "Permite crear y editar unidades de negocio y departamentos"),
+        (UnidadesEliminar, "Organización", "Eliminar Unidades", "Eliminar unidades de negocio", "Permite desvincular y eliminar unidades de negocio"),
         (EquiposGestionar, "Organización", "Gestionar Equipos", "Administrar equipos de trabajo", "Permite configurar equipos multidisciplinarios y sus integrantes"),
         (EquiposEliminar, "Organización", "Eliminar", "Eliminar equipos de trabajo", "Permite desvincular y eliminar equipos de trabajo"),
 
