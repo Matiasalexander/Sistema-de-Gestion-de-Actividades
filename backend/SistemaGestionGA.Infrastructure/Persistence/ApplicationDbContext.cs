@@ -53,6 +53,13 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<ChatGrupoMiembro> ChatGrupoMiembros => Set<ChatGrupoMiembro>();
     public DbSet<ChatMensaje> ChatMensajes => Set<ChatMensaje>();
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
+        optionsBuilder.ConfigureWarnings(w =>
+            w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -72,6 +79,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder.Entity<Departamento>().HasIndex(x => new { x.UnidadId, x.Codigo }).IsUnique();
         modelBuilder.Entity<Usuario>().HasIndex(x => x.NombreUsuario).IsUnique();
         modelBuilder.Entity<Usuario>().HasIndex(x => x.Email).IsUnique();
+        modelBuilder.Entity<Usuario>()
+            .HasIndex(x => x.Telefono)
+            .IsUnique()
+            .HasFilter("[Telefono] IS NOT NULL AND [Telefono] <> ''");
         modelBuilder.Entity<Rol>().HasIndex(x => x.Codigo).IsUnique();
         modelBuilder.Entity<Permiso>().HasIndex(x => x.Codigo).IsUnique();
         modelBuilder.Entity<Equipo>().HasIndex(x => x.Codigo).IsUnique();

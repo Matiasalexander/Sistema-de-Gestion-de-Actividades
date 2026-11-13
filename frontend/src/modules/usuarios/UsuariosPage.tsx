@@ -161,6 +161,11 @@ export const UsuariosPage: React.FC = () => {
 
   const guardarUsuarioMutation = useMutation({
     mutationFn: async () => {
+      const telDigitos = telefono.replace(/\D/g, '');
+      if (!telefono.trim() || telDigitos.length < 10) {
+        throw new Error('El número de teléfono móvil es obligatorio y debe contener al menos 10 dígitos.');
+      }
+
       if (usuarioEditando) {
         return apiFetch(`/api/usuarios/${usuarioEditando.id}`, {
           method: 'PUT',
@@ -578,8 +583,16 @@ export const UsuariosPage: React.FC = () => {
                         <div className="font-bold text-slate-900 dark:text-slate-100">
                           {u.nombreCompleto}
                         </div>
-                        <div className="text-[11px] text-slate-500">
-                          @{u.nombreUsuario} · {u.email}
+                        <div className="text-[11px] text-slate-500 flex items-center gap-1.5 flex-wrap">
+                          <span>@{u.nombreUsuario}</span>
+                          <span>·</span>
+                          <span>{u.email}</span>
+                          {u.telefono && (
+                            <>
+                              <span>·</span>
+                              <span className="text-blue-600 dark:text-blue-400 font-medium">📞 {u.telefono}</span>
+                            </>
+                          )}
                         </div>
                       </td>
                       <td className="py-3 px-4">
@@ -1011,6 +1024,17 @@ export const UsuariosPage: React.FC = () => {
                   onChange={(e) => setCargo(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent"
                 />
+              </div>
+              <div>
+                <label className="block font-semibold mb-1">Teléfono Móvil / WhatsApp *</label>
+                <input
+                  type="tel"
+                  value={telefono}
+                  onChange={(e) => setTelefono(e.target.value)}
+                  placeholder="ej. +52 55 1234 5678 o 5512345678"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent"
+                />
+                <span className="text-[10px] text-slate-400">Obligatorio (mínimo 10 dígitos). Permite inicio de sesión y no puede repetirse.</span>
               </div>
               <div>
                 <label className="block font-semibold mb-1">Departamento</label>

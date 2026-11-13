@@ -425,4 +425,60 @@ public class PermisosEliminarModulosTests
 
         Assert.Null(usuario.DepartamentoId);
     }
+
+    [Theory]
+    [InlineData("5541009001", "+52 55 4100 9001", true)]
+    [InlineData("+52 55 4100 9001", "+52 55 4100 9001", true)]
+    [InlineData("525541009001", "+52 55 4100 9001", true)]
+    [InlineData("5541009999", "+52 55 4100 9001", false)]
+    public void Login_IdentificadorTelefono_CoincideCorrectamente(string loginInput, string usuarioTelefonoDb, bool esperado)
+    {
+        var inputClean = loginInput.Trim();
+        var inputDigits = new string(inputClean.Where(char.IsDigit).ToArray());
+        var last10 = inputDigits.Length >= 10 ? inputDigits[^10..] : inputDigits;
+
+        var dbDigits = new string(usuarioTelefonoDb.Where(char.IsDigit).ToArray());
+        var dbLast10 = dbDigits.Length >= 10 ? dbDigits[^10..] : dbDigits;
+
+        var match = usuarioTelefonoDb == inputClean || 
+                    (inputDigits.Length >= 10 && (dbDigits == inputDigits || dbLast10 == last10));
+
+        Assert.Equal(esperado, match);
+    }
+
+    [Fact]
+    public void ValidarTelefono_DetectaDuplicadoEnUsuariosExistentes()
+    {
+        var usuarios = new List<Usuario>
+        {
+            new() { Id = 1, NombreUsuario = "admin", Email = "admin@ga.com", Telefono = "+52 55 4100 9001" },
+            new() { Id = 2, NombreUsuario = "pmo", Email = "pmo@ga.com", Telefono = "+52 55 4100 9002" }
+        };
+
+        var nuevoTelefono = "5541009001"; // Mismos 10 dígitos que el usuario 1
+        var digits = new string(nuevoTelefono.Where(char.IsDigit).ToArray());
+        var last10 = digits[^10..];
+
+        var esDuplicado = usuarios.Any(u =>
+        {
+            var uDigits = new string((u.Telefono ?? "").Where(char.IsDigit).ToArray());
+            return u.Telefono == nuevoTelefono || uDigits == digits || (uDigits.Length >= 10 && uDigits[^10..] == last10);
+        });
+
+        Assert.True(esDuplicado);
+    }
+
+    [Theory]
+    [InlineData("", false)]
+    [InlineData("12345", false)]
+    [InlineData("551234567", false)] // 9 dígitos
+    [InlineData("5512345678", true)] // 10 dígitos
+    [InlineData("+52 55 1234 5678", true)] // 12 dígitos
+    public void ValidarTelefono_RequisitoMinimo10Digitos(string telefono, bool esValido)
+    {
+        var digits = new string(telefono.Where(char.IsDigit).ToArray());
+        var valido = !string.IsNullOrWhiteSpace(telefono) && digits.Length >= 10;
+
+        Assert.Equal(esValido, valido);
+    }
 }

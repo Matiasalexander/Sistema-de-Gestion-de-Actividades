@@ -131,6 +131,30 @@ public class UsuariosController(
             throw new DomainRuleException("Ya existe un usuario registrado con ese nombre de usuario o correo electrónico.", "USUARIO_DUPLICADO", 400);
         }
 
+        var telNorm = dto.Telefono?.Trim() ?? string.Empty;
+        var telDigits = new string(telNorm.Where(char.IsDigit).ToArray());
+        if (string.IsNullOrWhiteSpace(telNorm) || telDigits.Length < 10)
+        {
+            throw new DomainRuleException("El número de teléfono móvil es obligatorio y debe contener al menos 10 dígitos.", "TELEFONO_INVALIDO", 400);
+        }
+
+        var last10 = telDigits[^10..];
+        var usuariosConTel = await db.Usuarios
+            .Where(u => u.Telefono != null && u.Telefono != "")
+            .Select(u => new { u.Id, u.Telefono })
+            .ToListAsync(ct);
+
+        var telefonoDuplicado = usuariosConTel.Any(u =>
+        {
+            var uDigits = new string(u.Telefono!.Where(char.IsDigit).ToArray());
+            return u.Telefono == telNorm || uDigits == telDigits || (uDigits.Length >= 10 && uDigits[^10..] == last10);
+        });
+
+        if (telefonoDuplicado)
+        {
+            throw new DomainRuleException("El número de teléfono ya se encuentra registrado con otro usuario. No se permiten números de teléfono duplicados.", "TELEFONO_DUPLICADO", 400);
+        }
+
         if (dto.AccesoGlobalUnidades && !currentUser.AccesoGlobalUnidades)
         {
             throw new ForbiddenScopeException("Solo un administrador con alcance global puede otorgar acceso global a unidades.");
@@ -239,10 +263,40 @@ public class UsuariosController(
             Unidades = usuario.UsuarioUnidades.Select(u => u.UnidadId).ToList()
         });
 
-        usuario.Email = dto.Email.Trim().ToLowerInvariant();
+        var emailNorm = dto.Email.Trim().ToLowerInvariant();
+        if (await db.Usuarios.AnyAsync(u => u.Id != id && u.Email == emailNorm, ct))
+        {
+            throw new DomainRuleException("Ya existe otro usuario registrado con ese correo electrónico.", "EMAIL_DUPLICADO", 400);
+        }
+
+        var telNorm = dto.Telefono?.Trim() ?? string.Empty;
+        var telDigits = new string(telNorm.Where(char.IsDigit).ToArray());
+        if (string.IsNullOrWhiteSpace(telNorm) || telDigits.Length < 10)
+        {
+            throw new DomainRuleException("El número de teléfono móvil es obligatorio y debe contener al menos 10 dígitos.", "TELEFONO_INVALIDO", 400);
+        }
+
+        var last10 = telDigits[^10..];
+        var usuariosConTel = await db.Usuarios
+            .Where(u => u.Id != id && u.Telefono != null && u.Telefono != "")
+            .Select(u => new { u.Id, u.Telefono })
+            .ToListAsync(ct);
+
+        var telefonoDuplicado = usuariosConTel.Any(u =>
+        {
+            var uDigits = new string(u.Telefono!.Where(char.IsDigit).ToArray());
+            return u.Telefono == telNorm || uDigits == telDigits || (uDigits.Length >= 10 && uDigits[^10..] == last10);
+        });
+
+        if (telefonoDuplicado)
+        {
+            throw new DomainRuleException("El número de teléfono ya se encuentra registrado con otro usuario. No se permiten números de teléfono duplicados.", "TELEFONO_DUPLICADO", 400);
+        }
+
+        usuario.Email = emailNorm;
         usuario.NombreCompleto = dto.NombreCompleto.Trim();
         usuario.Cargo = dto.Cargo?.Trim();
-        usuario.Telefono = dto.Telefono?.Trim();
+        usuario.Telefono = telNorm;
         usuario.DepartamentoId = dto.DepartamentoId;
         if (currentUser.AccesoGlobalUnidades)
         {

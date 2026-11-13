@@ -6,7 +6,7 @@ import { ShieldCheck, Lock, User, AlertCircle, CheckCircle2, Layers } from 'luci
 import { useAuth } from './AuthContext';
 
 const loginSchema = z.object({
-  identificador: z.string().min(2, 'Ingrese su usuario o correo corporativo'),
+  identificador: z.string().min(2, 'Ingrese su usuario, correo o teléfono'),
   password: z.string().min(6, 'Ingrese su contraseña'),
 });
 
@@ -110,7 +110,7 @@ export const LoginPage: React.FC = () => {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
             <div>
               <label htmlFor="identificador" className="block text-sm font-medium mb-1.5">
-                Usuario o correo electrónico
+                Usuario, correo o teléfono móvil
               </label>
               <div className="relative">
                 <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
@@ -118,7 +118,7 @@ export const LoginPage: React.FC = () => {
                   id="identificador"
                   type="text"
                   autoComplete="username"
-                  placeholder="admin o correo@corporativoga.mx"
+                  placeholder="admin, correo@corporativoga.mx o 5512345678"
                   {...register('identificador')}
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
                 />

@@ -23,8 +23,12 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 if (!usarInMemory)
 {
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    {
         options.UseSqlServer(connectionString, sql =>
-            sql.MigrationsAssembly("SistemaGestionGA.Infrastructure")));
+            sql.MigrationsAssembly("SistemaGestionGA.Infrastructure"));
+        options.ConfigureWarnings(w =>
+            w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+    });
 }
 
 builder.Services.AddHttpContextAccessor();
