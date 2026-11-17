@@ -43,6 +43,7 @@ export const ChatPage: React.FC = () => {
   const [textoMensaje, setTextoMensaje] = useState('');
   const [modalNuevoGrupo, setModalNuevoGrupo] = useState(false);
   const [modalMiembros, setModalMiembros] = useState(false);
+  const [grupoParaEliminar, setGrupoParaEliminar] = useState<ChatGrupoItem | null>(null);
 
   // Formulario nuevo grupo (Asistente en 3 pasos)
   const [pasoNuevoGrupo, setPasoNuevoGrupo] = useState<1 | 2 | 3>(1);
@@ -160,6 +161,16 @@ export const ChatPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['actividades'] });
     });
 
+    connection.on('GrupoChatEliminado', (payload: { grupoId: number }) => {
+      if (payload.grupoId === grupoSeleccionadoId) {
+        setGrupoSeleccionadoId(null);
+      }
+      queryClient.invalidateQueries({ queryKey: ['chat-grupos'] });
+      queryClient.removeQueries({ queryKey: ['chat-grupo-detalle', payload.grupoId] });
+      queryClient.removeQueries({ queryKey: ['chat-mensajes', payload.grupoId] });
+      queryClient.invalidateQueries({ queryKey: ['actividades'] });
+    });
+
     connection.start().catch(() => {});
 
     return () => {
@@ -266,6 +277,26 @@ export const ChatPage: React.FC = () => {
     },
   });
 
+  // Mutación: Eliminar grupo de chat
+  const eliminarGrupoMutation = useMutation({
+    mutationFn: (grupoId: number) =>
+      apiFetch(`/api/chat/grupos/${grupoId}`, {
+        method: 'DELETE',
+      }),
+    onSuccess: (_, grupoIdEliminado) => {
+      setGrupoParaEliminar(null);
+      setModalMiembros(false);
+      if (grupoSeleccionadoId === grupoIdEliminado) {
+        const siguiente = grupos.find((g) => g.id !== grupoIdEliminado);
+        setGrupoSeleccionadoId(siguiente ? siguiente.id : null);
+      }
+      queryClient.invalidateQueries({ queryKey: ['chat-grupos'] });
+      queryClient.removeQueries({ queryKey: ['chat-grupo-detalle', grupoIdEliminado] });
+      queryClient.removeQueries({ queryKey: ['chat-mensajes', grupoIdEliminado] });
+      queryClient.invalidateQueries({ queryKey: ['actividades'] });
+    },
+  });
+
   const handleEnviar = (e: React.FormEvent) => {
     e.preventDefault();
     if (!textoMensaje.trim() || !grupoSeleccionadoId) return;
@@ -281,9 +312,18 @@ export const ChatPage: React.FC = () => {
   );
 
   const esAdmin =
-    usuario?.roles?.some((r) => r.toUpperCase() === 'ADMIN' || r.toUpperCase() === 'LIDER') ||
+    usuario?.roles?.some(
+      (r) => r.toUpperCase().includes('ADMIN') || r.toUpperCase().includes('LIDER')
+    ) ||
     tienePermiso('chat.crear') ||
     usuario?.accesoGlobalUnidades;
+
+  const puedeEliminarGrupo = (g: ChatGrupoItem) =>
+    Boolean(
+      esAdmin ||
+        g.creadoPorId === usuario?.id ||
+        g.miembros?.some((m) => m.usuarioId === usuario?.id && m.esAdmin)
+    );
 
   return (
     <div className="h-[calc(100vh-5rem)] flex flex-col -m-4 lg:-m-6 bg-slate-100 dark:bg-slate-950 overflow-hidden">
@@ -414,6 +454,20 @@ export const ChatPage: React.FC = () => {
                           <Users className="w-3 h-3 inline" />
                           {grupo.totalMiembros}
                         </span>
+
+                        {puedeEliminarGrupo(grupo) && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setGrupoParaEliminar(grupo);
+                            }}
+                            title="Eliminar grupo de chat"
+                            className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -486,6 +540,17 @@ export const ChatPage: React.FC = () => {
                   >
                     <Users className="w-4 h-4" />
                   </button>
+
+                  {/* Botón eliminar grupo */}
+                  {puedeEliminarGrupo(grupoActivo) && (
+                    <button
+                      onClick={() => setGrupoParaEliminar(grupoActivo)}
+                      className="p-1.5 rounded-xl border border-rose-200 dark:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 cursor-pointer transition-colors"
+                      title="Eliminar grupo de chat"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -1235,6 +1300,70 @@ export const ChatPage: React.FC = () => {
                 className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-semibold cursor-pointer"
               >
                 Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: CONFIRMAR ELIMINACIÓN DE GRUPO */}
+      {grupoParaEliminar && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md p-6 space-y-4 text-xs shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-base font-bold flex items-center gap-2 text-rose-600 dark:text-rose-400">
+                <Trash2 className="w-5 h-5" />
+                Eliminar Grupo de Chat
+              </h3>
+              <button
+                onClick={() => setGrupoParaEliminar(null)}
+                className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-2 text-slate-600 dark:text-slate-300 leading-relaxed">
+              <p>
+                ¿Estás seguro de que deseas eliminar permanentemente el grupo{' '}
+                <strong className="text-slate-900 dark:text-white">
+                  {grupoParaEliminar.nombre}
+                </strong>
+                ?
+              </p>
+              <p className="text-[11px] p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/60">
+                Se eliminarán el grupo, sus participantes y el historial de mensajes del chat. Las
+                actividades que se hayan creado a partir de este grupo se conservarán en el módulo
+                de Actividades con registro en su historial.
+              </p>
+
+              {eliminarGrupoMutation.isError && (
+                <p className="text-[11px] p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200/70 dark:border-rose-800/60">
+                  {(eliminarGrupoMutation.error as Error)?.message ||
+                    'Ocurrió un error al eliminar el grupo. Verifica tus permisos.'}
+                </p>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setGrupoParaEliminar(null)}
+                disabled={eliminarGrupoMutation.isPending}
+                className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer font-semibold"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => eliminarGrupoMutation.mutate(grupoParaEliminar.id)}
+                disabled={eliminarGrupoMutation.isPending}
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold disabled:opacity-50 cursor-pointer shadow-sm flex items-center gap-1.5"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>
+                  {eliminarGrupoMutation.isPending ? 'Eliminando...' : 'Sí, eliminar grupo'}
+                </span>
               </button>
             </div>
           </div>

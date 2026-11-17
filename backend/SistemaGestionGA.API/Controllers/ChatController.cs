@@ -137,6 +137,91 @@ public class ChatController(
         return await ObtenerGrupo(grupo.Id, ct);
     }
 
+    [HttpDelete("grupos/{id:int}")]
+    public async Task<IActionResult> EliminarGrupo(int id, CancellationToken ct)
+    {
+        var uid = currentUser.UsuarioId ?? throw new DomainRuleException("Sesión inválida.", "NO_AUTENTICADO", 401);
+        var grupo = await db.ChatGrupos
+            .Include(g => g.Miembros)
+            .FirstOrDefaultAsync(g => g.Id == id && g.Activo, ct)
+            ?? throw new DomainRuleException("Grupo de chat no encontrado.", "NO_ENCONTRADO", 404);
+
+        var esAdminGrupo = grupo.Miembros.Any(m => m.UsuarioId == uid && m.EsAdmin) || grupo.CreadoPorId == uid;
+        var tienePermisoAdmin = currentUser.AccesoGlobalUnidades ||
+            (currentUser.UnidadesAutorizadas.Contains(grupo.UnidadId) &&
+             (currentUser.TienePermiso(PermisosConstantes.ChatEliminar) || currentUser.TienePermiso(PermisosConstantes.ChatCrear)));
+
+        if (!esAdminGrupo && !tienePermisoAdmin)
+        {
+            throw new DomainRuleException("No tienes permisos de administrador para eliminar este grupo de chat.", "NO_AUTORIZADO", 403);
+        }
+
+        var miembrosIds = grupo.Miembros.Select(m => m.UsuarioId).Distinct().ToList();
+        var nombreGrupo = grupo.Nombre;
+
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+
+        // 1. Romper la referencia circular entre ChatGrupos y Actividades
+        grupo.ActividadActivaId = null;
+
+        var actividadesVinculadas = await db.Actividades
+            .Where(a => a.ChatGrupoId == grupo.Id)
+            .ToListAsync(ct);
+
+        foreach (var act in actividadesVinculadas)
+        {
+            act.ChatGrupoId = null;
+            db.ActividadHistorial.Add(new ActividadHistorial
+            {
+                ActividadId = act.Id,
+                UsuarioId = uid,
+                TipoCambio = "Eliminación de Grupo WhatsApp",
+                Detalle = $"El grupo de chat '{nombreGrupo}' vinculado a esta actividad fue eliminado por {currentUser.NombreCompleto}."
+            });
+        }
+
+        await db.SaveChangesAsync(ct);
+
+        // 2. Eliminar mensajes, miembros y el registro del grupo
+        var mensajes = await db.ChatMensajes.Where(m => m.ChatGrupoId == grupo.Id).ToListAsync(ct);
+        db.ChatMensajes.RemoveRange(mensajes);
+        db.ChatGrupoMiembros.RemoveRange(grupo.Miembros);
+        db.ChatGrupos.Remove(grupo);
+
+        db.AuditoriaEventos.Add(new AuditoriaEvento
+        {
+            UsuarioId = uid,
+            NombreUsuario = currentUser.NombreUsuario,
+            Modulo = "Chat",
+            Accion = "ELIMINAR_GRUPO",
+            Entidad = nameof(ChatGrupo),
+            EntidadId = id.ToString(),
+            UnidadId = grupo.UnidadId,
+            Resumen = $"Eliminación del grupo de chat '{nombreGrupo}'",
+            ValoresAnteriores = JsonSerializer.Serialize(new { grupo.Id, grupo.Nombre, grupo.UnidadId }),
+            IpAddress = currentUser.IpAddress,
+            FechaEventoUtc = DateTime.UtcNow
+        });
+
+        await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
+
+        // 3. Notificar por SignalR a los miembros para actualizar su vista en tiempo real
+        try
+        {
+            foreach (var mId in miembrosIds)
+            {
+                await hubContext.Clients.Group($"user:{mId}").SendAsync("GrupoChatEliminado", new { grupoId = id }, ct);
+            }
+        }
+        catch
+        {
+            // Continuación tolerante si SignalR no tiene clientes conectados
+        }
+
+        return NoContent();
+    }
+
     [HttpPost("grupos/{id:int}/miembros")]
     public async Task<ActionResult<ChatGrupoDto>> AgregarMiembros(int id, [FromBody] AgregarMiembrosDto dto, CancellationToken ct)
     {
@@ -576,7 +661,7 @@ public class ChatController(
 
         currentUser.ExigirAlcanceUnidad(actividad.UnidadId);
 
-        if (actividad.ChatGrupoId.HasValue && actividad.ChatGrupo != null)
+        if (actividad.ChatGrupoId.HasValue && actividad.ChatGrupo != null && actividad.ChatGrupo.Activo)
         {
             return await ObtenerGrupo(actividad.ChatGrupoId.Value, ct);
         }

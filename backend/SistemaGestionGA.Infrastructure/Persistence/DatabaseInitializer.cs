@@ -49,9 +49,12 @@ public static class DatabaseInitializer
         }
         await db.SaveChangesAsync();
 
-        // Asegurar que el rol ADMIN tenga todos los permisos existentes (incluyendo chat.*)
-        var rolAdminDb = await db.Roles.Include(r => r.RolPermisos).FirstOrDefaultAsync(r => r.Codigo == "ADMIN");
-        if (rolAdminDb != null)
+        // Asegurar que los roles de administrador (SUPER_ADMIN y ADMIN) tengan todos los permisos existentes
+        var rolesAdminDb = await db.Roles.Include(r => r.RolPermisos)
+            .Where(r => r.Codigo == "SUPER_ADMIN" || r.Codigo == "ADMIN")
+            .ToListAsync();
+
+        foreach (var rolAdminDb in rolesAdminDb)
         {
             var permisosAsignados = rolAdminDb.RolPermisos.Select(rp => rp.PermisoId).ToHashSet();
             foreach (var permiso in permisosExistentes.Values)
@@ -61,14 +64,14 @@ public static class DatabaseInitializer
                     db.RolPermisos.Add(new RolPermiso { RolId = rolAdminDb.Id, PermisoId = permiso.Id });
                 }
             }
+        }
+        if (rolesAdminDb.Count > 0)
+        {
             await db.SaveChangesAsync();
         }
 
-        // Asegurar grupo de chat demostrativo tipo WhatsApp
-        if (await db.Unidades.AnyAsync() && !await db.ChatGrupos.AnyAsync())
-        {
-            await SembrarChatWhatsAppInicialAsync(db);
-        }
+        // Asegurar grupo de chat demostrativo tipo WhatsApp solo en inicialización inicial limpia
+        // (desactivado para permitir ambiente en blanco cuando se limpian los datos operativos)
 
         if (await db.Unidades.AnyAsync())
             return;

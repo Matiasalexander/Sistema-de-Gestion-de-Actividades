@@ -80,6 +80,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const tienePermiso = (permiso: string): boolean => {
     if (!usuario) return false;
+    const esAdmin =
+      usuario.roles.some((r) => r.toUpperCase() === 'SUPER_ADMIN' || r.toUpperCase() === 'ADMIN') ||
+      usuario.accesoGlobalUnidades;
+    if (esAdmin) return true;
     return usuario.permisos.some((p) => p.toLowerCase() === permiso.toLowerCase());
   };
 

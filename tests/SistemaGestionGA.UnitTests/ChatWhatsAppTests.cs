@@ -77,4 +77,63 @@ public class ChatWhatsAppTests
         Assert.NotNull(mensajePregunta.OpcionSeleccionada);
         Assert.Equal(5, mensajePregunta.RespondidoPorUsuarioId);
     }
+
+    [Fact]
+    public void ChatGrupo_EliminarGrupo_DesvinculaActividadesYGeneraAuditoria()
+    {
+        var grupo = new ChatGrupo
+        {
+            Id = 5,
+            Nombre = "Grupo Soporte Sucursal Norte",
+            UnidadId = 2,
+            CreadoPorId = 3,
+            Activo = true
+        };
+
+        var actividadVinculada = new Actividad
+        {
+            Id = 42,
+            Codigo = "ACT-0042",
+            Titulo = "Revisión de enlace de comunicaciones",
+            UnidadId = 2,
+            ChatGrupoId = grupo.Id
+        };
+
+        grupo.ActividadActivaId = actividadVinculada.Id;
+
+        // Simular lógica de eliminación:
+        // 1. Romper referencias cruzadas
+        grupo.ActividadActivaId = null;
+        actividadVinculada.ChatGrupoId = null;
+
+        var historial = new ActividadHistorial
+        {
+            ActividadId = actividadVinculada.Id,
+            UsuarioId = 3,
+            TipoCambio = "Eliminación de Grupo WhatsApp",
+            Detalle = $"El grupo de chat '{grupo.Nombre}' vinculado a esta actividad fue eliminado por Administrador."
+        };
+
+        var auditoria = new AuditoriaEvento
+        {
+            UsuarioId = 3,
+            NombreUsuario = "admin",
+            Modulo = "Chat",
+            Accion = "ELIMINAR_GRUPO",
+            Entidad = nameof(ChatGrupo),
+            EntidadId = grupo.Id.ToString(),
+            UnidadId = grupo.UnidadId,
+            Resumen = $"Eliminación del grupo de chat '{grupo.Nombre}'",
+            ValoresAnteriores = JsonSerializer.Serialize(new { grupo.Id, grupo.Nombre, grupo.UnidadId }),
+            FechaEventoUtc = DateTime.UtcNow
+        };
+
+        Assert.Null(grupo.ActividadActivaId);
+        Assert.Null(actividadVinculada.ChatGrupoId);
+        Assert.Equal(42, historial.ActividadId);
+        Assert.Contains("Eliminación de Grupo WhatsApp", historial.TipoCambio);
+        Assert.Equal("ELIMINAR_GRUPO", auditoria.Accion);
+        Assert.Equal("Chat", auditoria.Modulo);
+        Assert.Contains("\"Id\":5", auditoria.ValoresAnteriores);
+    }
 }

@@ -10,6 +10,13 @@ import {
   Power,
   Check,
   Search,
+  Trash2,
+  Plus,
+  Edit2,
+  X,
+  AlertCircle,
+  RotateCcw,
+  AlertTriangle,
 } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
 import {
@@ -32,6 +39,8 @@ export const UsuariosPage: React.FC = () => {
   const [busqueda, setBusqueda] = useState('');
   const [modalUsuarioAbierto, setModalUsuarioAbierto] = useState(false);
   const [usuarioEditando, setUsuarioEditando] = useState<UsuarioLista | null>(null);
+  const [usuarioAEliminar, setUsuarioAEliminar] = useState<UsuarioLista | null>(null);
+  const [modalEliminarUsuario, setModalEliminarUsuario] = useState(false);
   const [rolSeleccionado, setRolSeleccionado] = useState<RolItem | null>(null);
   const [permisosSeleccionados, setPermisosSeleccionados] = useState<string[]>([]);
   const [mensajeExito, setMensajeExito] = useState<string | null>(null);
@@ -49,6 +58,29 @@ export const UsuariosPage: React.FC = () => {
   const [rolesIds, setRolesIds] = useState<number[]>([]);
   const [unidadesIds, setUnidadesIds] = useState<number[]>([]);
   const [equiposIds, setEquiposIds] = useState<number[]>([]);
+
+  // Estados Unidades de Negocio
+  const [modalUnidadAbierto, setModalUnidadAbierto] = useState(false);
+  const [unidadEnEdicion, setUnidadEnEdicion] = useState<UnidadItem | null>(null);
+  const [unidadAEliminar, setUnidadAEliminar] = useState<UnidadItem | null>(null);
+  const [modalEliminarUnidadAbierto, setModalEliminarUnidadAbierto] = useState(false);
+  const [codigoUnidad, setCodigoUnidad] = useState('');
+  const [nombreUnidad, setNombreUnidad] = useState('');
+  const [descripcionUnidad, setDescripcionUnidad] = useState('');
+  const [zonaHorariaUnidad, setZonaHorariaUnidad] = useState('America/Mexico_City');
+  const [activaUnidad, setActivaUnidad] = useState(true);
+
+  // Estados Departamentos
+  const [modalDeptoAbierto, setModalDeptoAbierto] = useState(false);
+  const [deptoEnEdicion, setDeptoEnEdicion] = useState<DepartamentoItem | null>(null);
+  const [deptoAEliminar, setDeptoAEliminar] = useState<DepartamentoItem | null>(null);
+  const [modalEliminarDeptoAbierto, setModalEliminarDeptoAbierto] = useState(false);
+  const [deptoUnidadId, setDeptoUnidadId] = useState<number>(1);
+  const [codigoDepto, setCodigoDepto] = useState('');
+  const [nombreDepto, setNombreDepto] = useState('');
+  const [descripcionDepto, setDescripcionDepto] = useState('');
+  const [activaDepto, setActivaDepto] = useState(true);
+  const [modalRestablecerCorpAbierto, setModalRestablecerCorpAbierto] = useState(false);
 
   // Consultas API reales
   const { data: usuarios = [], isLoading: cargandoUsuarios } = useQuery<UsuarioLista[]>({
@@ -129,6 +161,11 @@ export const UsuariosPage: React.FC = () => {
 
   const guardarUsuarioMutation = useMutation({
     mutationFn: async () => {
+      const telDigitos = telefono.replace(/\D/g, '');
+      if (!telefono.trim() || telDigitos.length < 10) {
+        throw new Error('El número de teléfono móvil es obligatorio y debe contener al menos 10 dígitos.');
+      }
+
       if (usuarioEditando) {
         return apiFetch(`/api/usuarios/${usuarioEditando.id}`, {
           method: 'PUT',
@@ -199,6 +236,18 @@ export const UsuariosPage: React.FC = () => {
     },
   });
 
+  const eliminarUsuarioMutation = useMutation({
+    mutationFn: async (id: number) => apiFetch(`/api/usuarios/${id}`, { method: 'DELETE' }),
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['usuarios'] });
+      setMensajeExito(data?.mensaje || 'Usuario eliminado / dado de baja exitosamente.');
+      setModalEliminarUsuario(false);
+      setUsuarioAEliminar(null);
+      setTimeout(() => setMensajeExito(null), 4000);
+    },
+    onError: (err: any) => setErrorMsg(err.message),
+  });
+
   const guardarPermisosRolMutation = useMutation({
     mutationFn: async () => {
       if (!rolSeleccionado) return;
@@ -235,6 +284,167 @@ export const UsuariosPage: React.FC = () => {
     return acc;
   }, {});
 
+  const esAdmin =
+    usuarioActual?.roles.some((r) => r === 'SUPER_ADMIN' || r === 'ADMIN') ||
+    usuarioActual?.accesoGlobalUnidades;
+  const puedeGestionarUnidades = tienePermiso('unidades.gestionar') || esAdmin;
+  const puedeEliminarUnidades =
+    tienePermiso('unidades.eliminar') || tienePermiso('unidades.gestionar') || esAdmin;
+
+  const abrirNuevaUnidad = () => {
+    setUnidadEnEdicion(null);
+    setCodigoUnidad(`UN-${unidades.length + 10}`);
+    setNombreUnidad('');
+    setDescripcionUnidad('');
+    setZonaHorariaUnidad('America/Mexico_City');
+    setActivaUnidad(true);
+    setModalUnidadAbierto(true);
+  };
+
+  const abrirEditarUnidad = (u: UnidadItem) => {
+    setUnidadEnEdicion(u);
+    setCodigoUnidad(u.codigo);
+    setNombreUnidad(u.nombre);
+    setDescripcionUnidad(u.descripcion || '');
+    setZonaHorariaUnidad(u.zonaHoraria || 'America/Mexico_City');
+    setActivaUnidad(u.activa);
+    setModalUnidadAbierto(true);
+  };
+
+  const abrirNuevoDepartamento = (targetUnidadId: number) => {
+    setDeptoEnEdicion(null);
+    setDeptoUnidadId(targetUnidadId);
+    setCodigoDepto(`DEP-${Math.floor(Math.random() * 899 + 100)}`);
+    setNombreDepto('');
+    setDescripcionDepto('');
+    setActivaDepto(true);
+    setModalDeptoAbierto(true);
+  };
+
+  const abrirEditarDepartamento = (d: DepartamentoItem) => {
+    setDeptoEnEdicion(d);
+    setDeptoUnidadId(d.unidadId);
+    setCodigoDepto(d.codigo);
+    setNombreDepto(d.nombre);
+    setDescripcionDepto(d.descripcion || '');
+    setActivaDepto(d.activa);
+    setModalDeptoAbierto(true);
+  };
+
+  const guardarUnidadMutation = useMutation({
+    mutationFn: async () => {
+      if (unidadEnEdicion) {
+        return apiFetch(`/api/unidades/${unidadEnEdicion.id}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            codigo: codigoUnidad,
+            nombre: nombreUnidad,
+            descripcion: descripcionUnidad,
+            zonaHoraria: zonaHorariaUnidad,
+            activa: activaUnidad,
+          }),
+        });
+      } else {
+        return apiFetch('/api/unidades', {
+          method: 'POST',
+          body: JSON.stringify({
+            codigo: codigoUnidad,
+            nombre: nombreUnidad,
+            descripcion: descripcionUnidad,
+            zonaHoraria: zonaHorariaUnidad,
+            activa: activaUnidad,
+          }),
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['unidades'] });
+      queryClient.invalidateQueries({ queryKey: ['auditoria'] });
+      setModalUnidadAbierto(false);
+      setMensajeExito(unidadEnEdicion ? 'Unidad de negocio actualizada.' : 'Unidad de negocio creada.');
+      setTimeout(() => setMensajeExito(null), 3500);
+    },
+    onError: (err: any) => setErrorMsg(err.message),
+  });
+
+  const eliminarUnidadMutation = useMutation({
+    mutationFn: async (id: number) => apiFetch(`/api/unidades/${id}`, { method: 'DELETE' }),
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['unidades'] });
+      queryClient.invalidateQueries({ queryKey: ['auditoria'] });
+      setModalEliminarUnidadAbierto(false);
+      setUnidadAEliminar(null);
+      setMensajeExito(data?.mensaje || 'Unidad de negocio eliminada.');
+      setTimeout(() => setMensajeExito(null), 3500);
+    },
+    onError: (err: any) => setErrorMsg(err.message),
+  });
+
+  const guardarDeptoMutation = useMutation({
+    mutationFn: async () => {
+      if (deptoEnEdicion) {
+        return apiFetch(`/api/departamentos/${deptoEnEdicion.id}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            unidadId: deptoUnidadId,
+            codigo: codigoDepto,
+            nombre: nombreDepto,
+            descripcion: descripcionDepto,
+            activa: activaDepto,
+          }),
+        });
+      } else {
+        return apiFetch('/api/departamentos', {
+          method: 'POST',
+          body: JSON.stringify({
+            unidadId: deptoUnidadId,
+            codigo: codigoDepto,
+            nombre: nombreDepto,
+            descripcion: descripcionDepto,
+            activa: activaDepto,
+          }),
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['unidades'] });
+      queryClient.invalidateQueries({ queryKey: ['departamentos'] });
+      queryClient.invalidateQueries({ queryKey: ['auditoria'] });
+      setModalDeptoAbierto(false);
+      setMensajeExito(deptoEnEdicion ? 'Departamento actualizado.' : 'Departamento creado.');
+      setTimeout(() => setMensajeExito(null), 3500);
+    },
+    onError: (err: any) => setErrorMsg(err.message),
+  });
+
+  const eliminarDeptoMutation = useMutation({
+    mutationFn: async (id: number) => apiFetch(`/api/departamentos/${id}`, { method: 'DELETE' }),
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['unidades'] });
+      queryClient.invalidateQueries({ queryKey: ['departamentos'] });
+      queryClient.invalidateQueries({ queryKey: ['auditoria'] });
+      setModalEliminarDeptoAbierto(false);
+      setDeptoAEliminar(null);
+      setMensajeExito(data?.mensaje || 'Departamento eliminado.');
+      setTimeout(() => setMensajeExito(null), 3500);
+    },
+    onError: (err: any) => setErrorMsg(err.message),
+  });
+
+  const restablecerCorporativoMutation = useMutation({
+    mutationFn: async () => apiFetch('/api/mantenimiento/solo-corporativo', { method: 'POST' }),
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['unidades'] });
+      queryClient.invalidateQueries({ queryKey: ['departamentos'] });
+      queryClient.invalidateQueries({ queryKey: ['usuarios'] });
+      queryClient.invalidateQueries({ queryKey: ['auditoria'] });
+      setModalRestablecerCorpAbierto(false);
+      setMensajeExito(data?.mensaje || 'Base de datos restablecida a solo Corporativo GA.');
+      setTimeout(() => setMensajeExito(null), 5000);
+    },
+    onError: (err: any) => setErrorMsg(err.message),
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -247,15 +457,41 @@ export const UsuariosPage: React.FC = () => {
           </p>
         </div>
 
-        {tienePermiso('usuarios.crear') && (
-          <button
-            onClick={abrirNuevoUsuario}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition cursor-pointer"
-          >
-            <UserPlus className="w-4 h-4" />
-            Nuevo Usuario Corporativo
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {tabActiva === 'usuarios' && tienePermiso('usuarios.crear') && (
+            <button
+              onClick={abrirNuevoUsuario}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition cursor-pointer"
+            >
+              <UserPlus className="w-4 h-4" />
+              Nuevo Usuario Corporativo
+            </button>
+          )}
+
+          {tabActiva === 'unidades' && (
+            <>
+              {esAdmin && (
+                <button
+                  onClick={() => setModalRestablecerCorpAbierto(true)}
+                  className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 text-red-700 dark:text-red-300 text-xs font-semibold shadow-xs transition cursor-pointer"
+                  title="Eliminar datos operativos, departamentos y dejar únicamente Corporativo GA"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 text-red-600" />
+                  Dejar Solo Corporativo GA
+                </button>
+              )}
+              {puedeGestionarUnidades && (
+                <button
+                  onClick={abrirNuevaUnidad}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  Nueva Unidad de Negocio
+                </button>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       {mensajeExito && (
@@ -347,8 +583,16 @@ export const UsuariosPage: React.FC = () => {
                         <div className="font-bold text-slate-900 dark:text-slate-100">
                           {u.nombreCompleto}
                         </div>
-                        <div className="text-[11px] text-slate-500">
-                          @{u.nombreUsuario} · {u.email}
+                        <div className="text-[11px] text-slate-500 flex items-center gap-1.5 flex-wrap">
+                          <span>@{u.nombreUsuario}</span>
+                          <span>·</span>
+                          <span>{u.email}</span>
+                          {u.telefono && (
+                            <>
+                              <span>·</span>
+                              <span className="text-blue-600 dark:text-blue-400 font-medium">📞 {u.telefono}</span>
+                            </>
+                          )}
                         </div>
                       </td>
                       <td className="py-3 px-4">
@@ -423,6 +667,18 @@ export const UsuariosPage: React.FC = () => {
                             className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-red-50 text-red-600 cursor-pointer"
                           >
                             <Power className="w-3.5 h-3.5 inline" />
+                          </button>
+                        )}
+                        {tienePermiso('usuarios.eliminar') && u.id !== usuarioActual?.id && (
+                          <button
+                            onClick={() => {
+                              setUsuarioAEliminar(u);
+                              setModalEliminarUsuario(true);
+                            }}
+                            title="Eliminar o dar de baja definitiva al usuario"
+                            className="p-1.5 rounded-lg border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 inline" />
                           </button>
                         )}
                       </td>
@@ -533,39 +789,125 @@ export const UsuariosPage: React.FC = () => {
 
       {/* TAB 3: UNIDADES Y DEPARTAMENTOS */}
       {tabActiva === 'unidades' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {unidades.map((u) => (
-            <div
-              key={u.id}
-              className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-blue-600">{u.codigo}</span>
-                  <h3 className="text-base font-bold">{u.nombre}</h3>
-                </div>
-                <span className="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800">
-                  {u.zonaHoraria}
-                </span>
+        <div className="space-y-4">
+          {unidades.length === 0 ? (
+            <div className="p-8 text-center rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3">
+              <div className="w-12 h-12 mx-auto rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center font-bold">
+                <Building2 className="w-6 h-6" />
               </div>
-              <p className="text-xs text-slate-500">{u.descripcion}</p>
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-                <div className="text-xs font-semibold mb-2">
-                  Departamentos ({u.departamentos.length}):
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {u.departamentos.map((d) => (
-                    <span
-                      key={d.id}
-                      className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-medium"
-                    >
-                      {d.codigo} · {d.nombre}
-                    </span>
-                  ))}
-                </div>
-              </div>
+              <h3 className="text-base font-bold">No hay unidades de negocio registradas</h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                Haga clic en &quot;Nueva Unidad de Negocio&quot; para registrar las sedes, plantas o centros de operaciones corporativos.
+              </p>
             </div>
-          ))}
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {unidades.map((u) => (
+                <div
+                  key={u.id}
+                  className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3 shadow-2xs"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-blue-600">{u.codigo}</span>
+                        <span
+                          className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+                            u.activa
+                              ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                          }`}
+                        >
+                          {u.activa ? 'Activa' : 'Inactiva'}
+                        </span>
+                      </div>
+                      <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">{u.nombre}</h3>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                        {u.zonaHoraria}
+                      </span>
+                      {puedeGestionarUnidades && (
+                        <button
+                          onClick={() => abrirEditarUnidad(u)}
+                          title="Editar unidad de negocio"
+                          className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {puedeEliminarUnidades && (
+                        <button
+                          onClick={() => {
+                            setUnidadAEliminar(u);
+                            setModalEliminarUnidadAbierto(true);
+                          }}
+                          title="Eliminar unidad de negocio"
+                          className="p-1.5 rounded-lg border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 cursor-pointer transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {u.descripcion || 'Sin descripción detallada.'}
+                  </p>
+
+                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      <span>Departamentos ({u.departamentos.length}):</span>
+                      {puedeGestionarUnidades && (
+                        <button
+                          onClick={() => abrirNuevoDepartamento(u.id)}
+                          className="inline-flex items-center gap-1 text-[11px] text-blue-600 dark:text-blue-400 hover:underline font-medium cursor-pointer"
+                        >
+                          <Plus className="w-3 h-3" /> Agregar depto
+                        </button>
+                      )}
+                    </div>
+
+                    {u.departamentos.length === 0 ? (
+                      <p className="text-[11px] text-slate-400 italic">No hay departamentos en esta unidad.</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-1.5">
+                        {u.departamentos.map((d) => (
+                          <span
+                            key={d.id}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-medium group text-slate-800 dark:text-slate-200"
+                          >
+                            <span>{d.codigo} · {d.nombre}</span>
+                            {puedeGestionarUnidades && (
+                              <div className="flex items-center gap-1 ml-1">
+                                <button
+                                  onClick={() => abrirEditarDepartamento(d)}
+                                  title="Editar departamento"
+                                  className="text-slate-400 hover:text-blue-600 p-0.5 cursor-pointer"
+                                >
+                                  <Edit2 className="w-3 h-3" />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setDeptoAEliminar(d);
+                                    setModalEliminarDeptoAbierto(true);
+                                  }}
+                                  title="Eliminar departamento"
+                                  className="text-slate-400 hover:text-red-600 p-0.5 cursor-pointer"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            )}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -684,6 +1026,17 @@ export const UsuariosPage: React.FC = () => {
                 />
               </div>
               <div>
+                <label className="block font-semibold mb-1">Teléfono Móvil / WhatsApp *</label>
+                <input
+                  type="tel"
+                  value={telefono}
+                  onChange={(e) => setTelefono(e.target.value)}
+                  placeholder="ej. +52 55 1234 5678 o 5512345678"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent"
+                />
+                <span className="text-[10px] text-slate-400">Obligatorio (mínimo 10 dígitos). Permite inicio de sesión y no puede repetirse.</span>
+              </div>
+              <div>
                 <label className="block font-semibold mb-1">Departamento</label>
                 <select
                   value={departamentoId ?? ''}
@@ -799,6 +1152,421 @@ export const UsuariosPage: React.FC = () => {
                 className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold cursor-pointer"
               >
                 Guardar Usuario
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CONFIRMAR ELIMINACIÓN DE USUARIO */}
+      {modalEliminarUsuario && usuarioAEliminar && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 text-xs">
+            <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center font-bold">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                ¿Eliminar cuenta de usuario?
+              </h3>
+              <p className="text-slate-500 mt-1">
+                Está a punto de procesar la eliminación de{' '}
+                <strong className="text-slate-900 dark:text-slate-200">
+                  {usuarioAEliminar.nombreCompleto} ({usuarioAEliminar.nombreUsuario})
+                </strong>
+                .
+              </p>
+              <p className="text-slate-400 mt-2">
+                Si el usuario cuenta con actividades creadas, tickets asignados o registros en bitácora, el sistema aplicará una <strong>baja lógica definitiva</strong> revocando todas sus sesiones activas para proteger la integridad histórica. Si no tiene historial, se eliminará por completo.
+              </p>
+            </div>
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => {
+                  setModalEliminarUsuario(false);
+                  setUsuarioAEliminar(null);
+                }}
+                disabled={eliminarUsuarioMutation.isPending}
+                className="px-4 py-2 rounded-xl font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => eliminarUsuarioMutation.mutate(usuarioAEliminar.id)}
+                disabled={eliminarUsuarioMutation.isPending}
+                className="px-4 py-2 rounded-xl font-semibold bg-red-600 hover:bg-red-700 text-white cursor-pointer flex items-center gap-1.5"
+              >
+                {eliminarUsuarioMutation.isPending ? 'Procesando...' : 'Confirmar baja / eliminación'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CREAR / EDITAR UNIDAD */}
+      {modalUnidadAbierto && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md p-6 space-y-4 text-xs shadow-2xl">
+            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+              {unidadEnEdicion ? 'Editar Unidad de Negocio' : 'Registrar Unidad de Negocio'}
+            </h3>
+
+            {guardarUnidadMutation.isError && (
+              <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{guardarUnidadMutation.error?.message || 'Error al guardar la unidad'}</span>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold mb-1">Código</label>
+                  <input
+                    value={codigoUnidad}
+                    disabled={!!unidadEnEdicion}
+                    onChange={(e) => setCodigoUnidad(e.target.value)}
+                    placeholder="UN-01"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent disabled:opacity-60"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold mb-1">Zona Horaria</label>
+                  <input
+                    value={zonaHorariaUnidad}
+                    onChange={(e) => setZonaHorariaUnidad(e.target.value)}
+                    placeholder="America/Mexico_City"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1">Nombre de la Unidad</label>
+                <input
+                  value={nombreUnidad}
+                  onChange={(e) => setNombreUnidad(e.target.value)}
+                  placeholder="Ej. Sede Corporativa Reforma"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1">Descripción</label>
+                <textarea
+                  value={descripcionUnidad}
+                  onChange={(e) => setDescripcionUnidad(e.target.value)}
+                  rows={2}
+                  placeholder="Ubicación o alcance de la unidad de negocio"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent"
+                />
+              </div>
+
+              <label className="flex items-center gap-2 cursor-pointer pt-1">
+                <input
+                  type="checkbox"
+                  checked={activaUnidad}
+                  onChange={(e) => setActivaUnidad(e.target.checked)}
+                  className="rounded border-slate-300"
+                />
+                <span className="font-semibold">Unidad activa para operaciones</span>
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setModalUnidadAbierto(false)}
+                className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={guardarUnidadMutation.isPending || !nombreUnidad.trim() || !codigoUnidad.trim()}
+                onClick={() => guardarUnidadMutation.mutate()}
+                className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold cursor-pointer disabled:opacity-50"
+              >
+                {guardarUnidadMutation.isPending ? 'Guardando...' : unidadEnEdicion ? 'Actualizar Unidad' : 'Guardar Unidad'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CONFIRMAR ELIMINACIÓN DE UNIDAD */}
+      {modalEliminarUnidadAbierto && unidadAEliminar && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 text-xs">
+            <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center font-bold">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                ¿Eliminar unidad de negocio?
+              </h3>
+              <p className="text-slate-500 mt-1">
+                Está a punto de eliminar la unidad{' '}
+                <strong className="text-slate-900 dark:text-slate-200">
+                  {unidadAEliminar.codigo}: {unidadAEliminar.nombre}
+                </strong>
+                .
+              </p>
+              <p className="text-slate-400 mt-2">
+                Se desvincularán los usuarios asignados a esta unidad y sus {unidadAEliminar.departamentos.length} departamentos.
+                El sistema verificará que no existan proyectos, actividades o tickets activos antes de procesar el borrado.
+              </p>
+            </div>
+
+            {eliminarUnidadMutation.isError && (
+              <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{eliminarUnidadMutation.error?.message || 'Error al eliminar la unidad'}</span>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => {
+                  setModalEliminarUnidadAbierto(false);
+                  setUnidadAEliminar(null);
+                }}
+                disabled={eliminarUnidadMutation.isPending}
+                className="px-4 py-2 rounded-xl font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => eliminarUnidadMutation.mutate(unidadAEliminar.id)}
+                disabled={eliminarUnidadMutation.isPending}
+                className="px-4 py-2 rounded-xl font-semibold bg-red-600 hover:bg-red-700 text-white cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {eliminarUnidadMutation.isPending ? 'Eliminando...' : 'Confirmar eliminación'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CREAR / EDITAR DEPARTAMENTO */}
+      {modalDeptoAbierto && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md p-6 space-y-4 text-xs shadow-2xl">
+            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+              {deptoEnEdicion ? 'Editar Departamento' : 'Registrar Departamento'}
+            </h3>
+
+            {guardarDeptoMutation.isError && (
+              <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{guardarDeptoMutation.error?.message || 'Error al guardar departamento'}</span>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <div>
+                <label className="block font-semibold mb-1">Unidad de Negocio</label>
+                <select
+                  value={deptoUnidadId}
+                  disabled={!!deptoEnEdicion}
+                  onChange={(e) => setDeptoUnidadId(Number(e.target.value))}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 disabled:opacity-60"
+                >
+                  {unidades.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.codigo} · {u.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold mb-1">Código</label>
+                  <input
+                    value={codigoDepto}
+                    onChange={(e) => setCodigoDepto(e.target.value)}
+                    placeholder="DEP-TI"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold mb-1">Nombre</label>
+                  <input
+                    value={nombreDepto}
+                    onChange={(e) => setNombreDepto(e.target.value)}
+                    placeholder="Tecnología"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1">Descripción</label>
+                <textarea
+                  value={descripcionDepto}
+                  onChange={(e) => setDescripcionDepto(e.target.value)}
+                  rows={2}
+                  placeholder="Funciones o alcance del departamento"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent"
+                />
+              </div>
+
+              <label className="flex items-center gap-2 cursor-pointer pt-1">
+                <input
+                  type="checkbox"
+                  checked={activaDepto}
+                  onChange={(e) => setActivaDepto(e.target.checked)}
+                  className="rounded border-slate-300"
+                />
+                <span className="font-semibold">Departamento activo</span>
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setModalDeptoAbierto(false)}
+                className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={guardarDeptoMutation.isPending || !nombreDepto.trim() || !codigoDepto.trim()}
+                onClick={() => guardarDeptoMutation.mutate()}
+                className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold cursor-pointer disabled:opacity-50"
+              >
+                {guardarDeptoMutation.isPending ? 'Guardando...' : deptoEnEdicion ? 'Actualizar Depto' : 'Guardar Depto'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CONFIRMAR ELIMINACIÓN DE DEPARTAMENTO */}
+      {modalEliminarDeptoAbierto && deptoAEliminar && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 text-xs">
+            <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center font-bold">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                ¿Eliminar departamento?
+              </h3>
+              <p className="text-slate-500 mt-1">
+                Está a punto de eliminar el departamento{' '}
+                <strong className="text-slate-900 dark:text-slate-200">
+                  {deptoAEliminar.codigo}: {deptoAEliminar.nombre}
+                </strong>
+                .
+              </p>
+              <p className="text-slate-400 mt-2">
+                Los usuarios que pertenecían a este departamento quedarán sin departamento asignado.
+                Si existen tickets, proyectos o equipos vinculados a este departamento, el sistema impedirá su eliminación.
+              </p>
+            </div>
+
+            {eliminarDeptoMutation.isError && (
+              <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{eliminarDeptoMutation.error?.message || 'Error al eliminar el departamento'}</span>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => {
+                  setModalEliminarDeptoAbierto(false);
+                  setDeptoAEliminar(null);
+                }}
+                disabled={eliminarDeptoMutation.isPending}
+                className="px-4 py-2 rounded-xl font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => eliminarDeptoMutation.mutate(deptoAEliminar.id)}
+                disabled={eliminarDeptoMutation.isPending}
+                className="px-4 py-2 rounded-xl font-semibold bg-red-600 hover:bg-red-700 text-white cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {eliminarDeptoMutation.isPending ? 'Eliminando...' : 'Confirmar eliminación'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 5: RESTABLECER A SOLO CORPORATIVO GA */}
+      {modalRestablecerCorpAbierto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 space-y-4 shadow-xl">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center font-bold shrink-0">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                  Restablecer a Solo Corporativo GA
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Acción administrativa de limpieza organizativa
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+              <p className="font-semibold text-slate-900 dark:text-slate-100">
+                Esta acción ejecutará las siguientes tareas de forma atómica:
+              </p>
+              <ul className="list-disc pl-5 space-y-1 text-slate-500 dark:text-slate-400">
+                <li>Eliminará todos los <strong>datos operativos</strong> (Equipos, Proyectos, Actividades, Tickets y Grupos de WhatsApp).</li>
+                <li>Eliminará todos los <strong>departamentos</strong> existentes.</li>
+                <li>Eliminará todas las <strong>unidades secundarias</strong> y dejará únicamente <strong>Corporativo GA</strong>.</li>
+                <li><strong className="text-emerald-600 dark:text-emerald-400">CONSERVARÁ todos los usuarios</strong>, sus contraseñas, roles y accesos, reasignándolos a Corporativo GA.</li>
+              </ul>
+            </div>
+
+            {restablecerCorporativoMutation.isError && (
+              <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 flex items-center gap-2 text-xs">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{restablecerCorporativoMutation.error?.message || 'Error al restablecer la organización'}</span>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800 text-xs">
+              <button
+                type="button"
+                onClick={() => setModalRestablecerCorpAbierto(false)}
+                disabled={restablecerCorporativoMutation.isPending}
+                className="px-4 py-2 rounded-xl font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => restablecerCorporativoMutation.mutate()}
+                disabled={restablecerCorporativoMutation.isPending}
+                className="px-4 py-2 rounded-xl font-semibold bg-red-600 hover:bg-red-700 text-white cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {restablecerCorporativoMutation.isPending ? (
+                  <>
+                    <RotateCcw className="w-3.5 h-3.5 animate-spin" />
+                    Procesando limpieza...
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    Confirmar y Restablecer
+                  </>
+                )}
               </button>
             </div>
           </div>

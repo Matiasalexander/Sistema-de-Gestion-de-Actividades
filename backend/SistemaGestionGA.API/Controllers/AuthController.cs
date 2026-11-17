@@ -22,12 +22,35 @@ public class AuthController(
     public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginRequestDto request, CancellationToken ct)
     {
         var identificador = request.Identificador.Trim();
+        var digitsIdentificador = new string(identificador.Where(char.IsDigit).ToArray());
+
         var usuario = await db.Usuarios
             .Include(u => u.Departamento)
             .Include(u => u.UsuarioRoles).ThenInclude(ur => ur.Rol!).ThenInclude(r => r.RolPermisos).ThenInclude(rp => rp.Permiso)
             .Include(u => u.UsuarioUnidades).ThenInclude(uu => uu.Unidad)
             .FirstOrDefaultAsync(u =>
-                u.NombreUsuario == identificador || u.Email == identificador, ct);
+                u.NombreUsuario == identificador || 
+                u.Email == identificador || 
+                u.Telefono == identificador, ct);
+
+        // Si no se encontró por coincidencia directa y el identificador tiene al menos 10 dígitos numéricos,
+        // validar con los números telefónicos normalizados de los usuarios.
+        if (usuario == null && digitsIdentificador.Length >= 10)
+        {
+            var last10 = digitsIdentificador[^10..];
+            var candidatosConTelefono = await db.Usuarios
+                .Include(u => u.Departamento)
+                .Include(u => u.UsuarioRoles).ThenInclude(ur => ur.Rol!).ThenInclude(r => r.RolPermisos).ThenInclude(rp => rp.Permiso)
+                .Include(u => u.UsuarioUnidades).ThenInclude(uu => uu.Unidad)
+                .Where(u => u.Telefono != null && u.Telefono != "")
+                .ToListAsync(ct);
+
+            usuario = candidatosConTelefono.FirstOrDefault(u =>
+            {
+                var telDigits = new string(u.Telefono!.Where(char.IsDigit).ToArray());
+                return telDigits == digitsIdentificador || (telDigits.Length >= 10 && telDigits[^10..] == last10);
+            });
+        }
 
         if (usuario == null)
         {
