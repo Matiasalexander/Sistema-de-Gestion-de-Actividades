@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ShieldCheck, Lock, User, AlertCircle, CheckCircle2, Layers } from 'lucide-react';
+import { ShieldCheck, Lock, User, AlertCircle, Layers } from 'lucide-react';
 import { useAuth } from './AuthContext';
 
 const loginSchema = z.object({
@@ -19,7 +19,6 @@ export const LoginPage: React.FC = () => {
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -38,10 +37,6 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  const usarCuentaDemo = (usuario: string) => {
-    setValue('identificador', usuario);
-    setValue('password', 'AdminGA2026!');
-  };
 
   return (
     <div className="min-h-screen flex bg-slate-950 text-white">
@@ -118,7 +113,7 @@ export const LoginPage: React.FC = () => {
                   id="identificador"
                   type="text"
                   autoComplete="username"
-                  placeholder="admin, correo@corporativoga.mx o 5512345678"
+                  placeholder="Usuario, correo o teléfono"
                   {...register('identificador')}
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
                 />
@@ -157,48 +152,7 @@ export const LoginPage: React.FC = () => {
             </button>
           </form>
 
-          {/* Selector rápido de perfiles semilla para validación de roles y alcance */}
-          <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
-            <div className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2.5">
-              Perfiles de validación preconfigurados (Click para autocompletar)
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => usarCuentaDemo('admin')}
-                className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-blue-500 text-left transition cursor-pointer"
-              >
-                <div className="font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> admin
-                </div>
-                <div className="text-slate-500 dark:text-slate-400 truncate">Director TI (Alcance Global)</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => usarCuentaDemo('elena.vargas')}
-                className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-blue-500 text-left transition cursor-pointer"
-              >
-                <div className="font-semibold text-emerald-600 dark:text-emerald-400">elena.vargas</div>
-                <div className="text-slate-500 dark:text-slate-400 truncate">Gerente PMO (Corp + Norte)</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => usarCuentaDemo('carlos.mendez')}
-                className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-blue-500 text-left transition cursor-pointer"
-              >
-                <div className="font-semibold text-amber-600 dark:text-amber-400">carlos.mendez</div>
-                <div className="text-slate-500 dark:text-slate-400 truncate">Mesa de Ayuda (Norte + Corp)</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => usarCuentaDemo('sofia.torres')}
-                className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-blue-500 text-left transition cursor-pointer"
-              >
-                <div className="font-semibold text-purple-600 dark:text-purple-400">sofia.torres</div>
-                <div className="text-slate-500 dark:text-slate-400 truncate">Operativo (Solo Unidad Sur)</div>
-              </button>
-            </div>
-          </div>
+
         </div>
       </div>
     </div>
