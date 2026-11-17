@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Users, Plus, UserCheck } from 'lucide-react';
+import { Users, Plus, UserCheck, Search, X, Check, Building2 } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
 import { apiFetch, EquipoItem, UnidadItem, UsuarioLista } from '../../services/api';
+import { array, boolean } from 'zod/v4';
 
 export const EquiposPage: React.FC = () => {
   const { unidadActivaId, tienePermiso } = useAuth();
@@ -15,6 +16,8 @@ export const EquiposPage: React.FC = () => {
   const [unidadId, setUnidadId] = useState<number>(unidadActivaId || 1);
   const [liderUsuarioId, setLiderUsuarioId] = useState<number | undefined>(undefined);
   const [integrantesIds, setIntegrantesIds] = useState<number[]>([]);
+  //buscador de usuario
+  const [busquedaUsuario, setBusquedaUsuario] = useState('');
 
   const { data: equipos = [] } = useQuery<EquipoItem[]>({
     queryKey: ['equipos', unidadActivaId],
@@ -29,11 +32,57 @@ export const EquiposPage: React.FC = () => {
     queryFn: () => apiFetch<UnidadItem[]>('/api/unidades'),
   });
 
-  const { data: directorio = [] } = useQuery<UsuarioLista[]>({
-    queryKey: ['directorio'],
-    queryFn: () => apiFetch<UsuarioLista[]>('/api/usuarios/directorio'),
+  //Nuevo directorio de usuarios dinámico
+  const { data: directorio = [], isLoading: cargandoDirectorio } = useQuery<UsuarioLista[]>({
+    queryKey: ['directorio', unidadId],
+    queryFn: () =>
+      apiFetch<UsuarioLista[]>(
+        `/api/usuarios/directorio${unidadId ? `?unidadId=${unidadId}` : ''}`
+      ),
+    enabled: modalAbierto && Boolean(unidadId),
   });
+  
+  //apertura del modal
+  const abrirModalNuevoEquipo = () => {
+    setCodigo(`EQ-${equipos.length + 10}`);
+    setNombre('');
+    setDescripcion('');
+    setUnidadId(unidadActivaId||unidades[0]?.id || 1);
+    setLiderUsuarioId(undefined);
+    setIntegrantesIds([]);
+    setBusquedaUsuario('');
+    setModalAbierto(true);
+  };
 
+  //cambio de unidad
+  const handleCambioUnidad = (nuevaUnidad: number)=> {
+    setUnidadId(nuevaUnidad);
+    setLiderUsuarioId(undefined);
+    setIntegrantesIds([]);
+    setBusquedaUsuario('');
+  };
+  //Filtrar dependiendo de la unidad
+ const usuariosFiltrados = useMemo(() => {
+    if (!busquedaUsuario.trim()) return directorio;
+    const term = busquedaUsuario.toLowerCase().trim();
+    return directorio.filter(
+      (u) =>
+        u.nombreCompleto.toLowerCase().includes(term) ||
+        u.email.toLowerCase().includes(term) ||
+        (u.cargo && u.cargo.toLowerCase().includes(term))
+    );
+  }, [directorio, busquedaUsuario]);
+
+  //selección and deselección masiva
+  const toggleSeleccionarTodos = () => {
+    const idsVisibles = usuariosFiltrados.map((u)=>u.id);
+    const todosVisiblesSeleccionados = idsVisibles.length > 0 && idsVisibles.every((id)=>integrantesIds.includes(id));
+    if (todosVisiblesSeleccionados) {
+      setIntegrantesIds((prev)=>prev.filter((id)=>!idsVisibles.includes(id)));
+    } else {
+      setIntegrantesIds((prev)=>Array.from(new Set([...prev, ...idsVisibles])));
+    }
+  };
   const crearEquipoMutation = useMutation({
     mutationFn: () =>
       apiFetch('/api/equipos', {
@@ -67,14 +116,7 @@ export const EquiposPage: React.FC = () => {
 
         {tienePermiso('equipos.gestionar') && (
           <button
-            onClick={() => {
-              setCodigo(`EQ-${equipos.length + 10}`);
-              setNombre('');
-              setDescripcion('');
-              setUnidadId(unidadActivaId || unidades[0]?.id || 1);
-              setIntegrantesIds([]);
-              setModalAbierto(true);
-            }}
+            onClick={abrirModalNuevoEquipo}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold cursor-pointer"
           >
             <Plus className="w-4 h-4" /> Nuevo Equipo

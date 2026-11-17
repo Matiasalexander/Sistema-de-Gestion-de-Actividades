@@ -14,6 +14,13 @@ import {
   MessageSquare,
   History,
   X,
+  ArrowRight, 
+  ArrowLeft,
+  Check,
+  Building2,
+  FileText,
+  Tag,
+  Users
 } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
 import {
@@ -45,6 +52,30 @@ export const TicketsPage: React.FC = () => {
   const [unidadId, setUnidadId] = useState<number>(unidadActivaId || 1);
   const [responsableId, setResponsableId] = useState<number | undefined>(undefined);
 
+  //estado para los pasos del panel
+  const [pasoNuevoTicket, setPasoNuevoTicket] = useState<1 | 2 | 3>(1);
+  const abrirModalNuevoTicket = () => {
+    setPasoNuevoTicket(1)
+    setTitulo('');
+    setDescripcion('');
+    setTicketTipoId(catalogos?.tiposTicket[0]?.id || 1);
+    setTicketCategoriaId(catalogos?.categoriasTicket[0]?.id ||1);
+    const prioridadDefecto = catalogos?.prioridades.find((p)=>p.codigo === 'MEDIA') || catalogos?.prioridades[1];
+    setPrioridadId(prioridadDefecto?.id || 2);
+    setUnidadId(unidadActivaId || unidades[0]?.id || 1);
+    setResponsableId(undefined);
+    setErrorMsg(null);
+    setModalNuevo(true);
+  };
+
+  const resetearModalNuevoTicket = () => {
+    setModalNuevo(false);
+    setPasoNuevoTicket(1);
+    setTitulo('');
+    setDescripcion('');
+    setResponsableId(undefined);
+    setErrorMsg(null);
+  };
   // Panel detalle inputs
   const [comentarioTexto, setComentarioTexto] = useState('');
   const [esInterno, setEsInterno] = useState(false);

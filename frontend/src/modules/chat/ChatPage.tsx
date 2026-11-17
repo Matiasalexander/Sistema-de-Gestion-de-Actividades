@@ -17,6 +17,9 @@ import {
   Building2,
   Clock,
   ArrowRight,
+  ArrowLeft,
+  Check,
+  FileText,
 } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
 import {
@@ -41,11 +44,32 @@ export const ChatPage: React.FC = () => {
   const [modalNuevoGrupo, setModalNuevoGrupo] = useState(false);
   const [modalMiembros, setModalMiembros] = useState(false);
 
-  // Formulario nuevo grupo
+  // Formulario nuevo grupo (Asistente en 3 pasos)
+  const [pasoNuevoGrupo, setPasoNuevoGrupo] = useState<1 | 2 | 3>(1);
   const [nuevoNombre, setNuevoNombre] = useState('');
   const [nuevaDescripcion, setNuevaDescripcion] = useState('');
   const [nuevaUnidadId, setNuevaUnidadId] = useState<number>(unidadActivaId || 1);
   const [miembrosSeleccionados, setMiembrosSeleccionados] = useState<number[]>([]);
+  const [busquedaIntegrantes, setBusquedaIntegrantes] = useState('');
+
+  const abrirModalNuevoGrupo = () => {
+    setPasoNuevoGrupo(1);
+    setNuevoNombre('');
+    setNuevaDescripcion('');
+    setNuevaUnidadId(unidadActivaId || unidades[0]?.id || 1);
+    setMiembrosSeleccionados([]);
+    setBusquedaIntegrantes('');
+    setModalNuevoGrupo(true);
+  };
+
+  const resetearModalNuevoGrupo = () => {
+    setModalNuevoGrupo(false);
+    setPasoNuevoGrupo(1);
+    setNuevoNombre('');
+    setNuevaDescripcion('');
+    setMiembrosSeleccionados([]);
+    setBusquedaIntegrantes('');
+  };
 
   // Miembros a agregar en grupo existente
   const [usuariosParaAgregar, setUsuariosParaAgregar] = useState<number[]>([]);
@@ -89,10 +113,11 @@ export const ChatPage: React.FC = () => {
     queryFn: () => apiFetch<UnidadItem[]>('/api/unidades'),
   });
 
-  const { data: directorio = [] } = useQuery<UsuarioLista[]>({
-    queryKey: ['directorio', unidadActivaId],
+  const unidadDirectorioId = modalNuevoGrupo ? nuevaUnidadId : unidadActivaId;
+  const { data: directorio = [], isLoading: cargandoDirectorio } = useQuery<UsuarioLista[]>({
+    queryKey: ['directorio', unidadDirectorioId],
     queryFn: () => {
-      const q = unidadActivaId ? `?unidadId=${unidadActivaId}` : '';
+      const q = unidadDirectorioId ? `?unidadId=${unidadDirectorioId}` : '';
       return apiFetch<UsuarioLista[]>(`/api/usuarios/directorio${q}`);
     },
   });
@@ -202,17 +227,14 @@ export const ChatPage: React.FC = () => {
       apiFetch<ChatGrupoItem>('/api/chat/grupos', {
         method: 'POST',
         body: JSON.stringify({
-          nombre: nuevoNombre,
-          descripcion: nuevaDescripcion,
+          nombre: nuevoNombre.trim(),
+          descripcion: nuevaDescripcion.trim() || undefined,
           unidadId: nuevaUnidadId,
           miembrosIds: miembrosSeleccionados,
         }),
       }),
     onSuccess: (nuevoGrupo) => {
-      setModalNuevoGrupo(false);
-      setNuevoNombre('');
-      setNuevaDescripcion('');
-      setMiembrosSeleccionados([]);
+      resetearModalNuevoGrupo();
       queryClient.invalidateQueries({ queryKey: ['chat-grupos'] });
       setGrupoSeleccionadoId(nuevoGrupo.id);
     },
@@ -276,9 +298,9 @@ export const ChatPage: React.FC = () => {
               </div>
               <div>
                 <h1 className="font-bold text-sm text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
-                  Chats WhatsApp
+                  Chats
                   <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 font-semibold">
-                    En vivo
+                    En línea
                   </span>
                 </h1>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400">
@@ -289,7 +311,7 @@ export const ChatPage: React.FC = () => {
 
             {esAdmin && (
               <button
-                onClick={() => setModalNuevoGrupo(true)}
+                onClick={abrirModalNuevoGrupo}
                 title="Crear nuevo grupo de chat"
                 className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
               >
@@ -323,8 +345,8 @@ export const ChatPage: React.FC = () => {
                 <p>No se encontraron grupos disponibles.</p>
                 {esAdmin && (
                   <button
-                    onClick={() => setModalNuevoGrupo(true)}
-                    className="text-emerald-600 hover:underline font-semibold"
+                    onClick={abrirModalNuevoGrupo}
+                    className="text-emerald-600 hover:underline font-semibold cursor-pointer"
                   >
                     Crear el primer grupo de chat
                   </button>
@@ -675,122 +697,426 @@ export const ChatPage: React.FC = () => {
         </div>
       </div>
 
-      {/* MODAL: NUEVO GRUPO DE CHAT */}
+      {/* MODAL: NUEVO GRUPO DE CHAT (ASISTENTE EN 3 PASOS) */}
       {modalNuevoGrupo && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg p-6 space-y-4 text-xs shadow-xl">
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg p-6 space-y-4 text-xs shadow-2xl transition-all">
+            {/* Encabezado del Modal */}
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-              <h3 className="text-base font-bold flex items-center gap-2">
-                <Users className="w-5 h-5 text-emerald-600" />
-                Crear Nuevo Grupo de Chat WhatsApp
-              </h3>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center">
+                  <Users className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">
+                    Crear Nuevo Grupo de WhatsApp
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Asistente de configuración en 3 pasos
+                  </p>
+                </div>
+              </div>
               <button
-                onClick={() => setModalNuevoGrupo(false)}
-                className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                onClick={resetearModalNuevoGrupo}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div>
-              <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">
-                Nombre del Grupo
-              </label>
-              <input
-                type="text"
-                placeholder="Ej. Soporte Nómina - Sucursal Norte"
-                value={nuevoNombre}
-                onChange={(e) => setNuevoNombre(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent text-slate-800 dark:text-slate-100"
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">
-                Descripción u Objetivo del Grupo
-              </label>
-              <textarea
-                rows={2}
-                placeholder="Canal directo para atender y resolver incidencias de nómina"
-                value={nuevaDescripcion}
-                onChange={(e) => setNuevaDescripcion(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent text-slate-800 dark:text-slate-100"
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">
-                Unidad de Negocio
-              </label>
-              <select
-                value={nuevaUnidadId}
-                onChange={(e) => setNuevaUnidadId(Number(e.target.value))}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100"
+            {/* Stepper Visual (Indicador de Progreso en 3 Pasos) */}
+            <div className="grid grid-cols-3 gap-2 py-1">
+              {/* Paso 1: Info */}
+              <div
+                className={`flex items-center gap-2 p-2 rounded-xl transition-all ${
+                  pasoNuevoGrupo === 1
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 font-semibold'
+                    : pasoNuevoGrupo > 1
+                    ? 'bg-slate-100 dark:bg-slate-800/80 text-emerald-600 dark:text-emerald-400'
+                    : 'bg-slate-50 dark:bg-slate-900 text-slate-400'
+                }`}
               >
-                {unidades.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.nombre} ({u.codigo})
-                  </option>
-                ))}
-              </select>
-            </div>
+                <div
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0 font-bold ${
+                    pasoNuevoGrupo > 1
+                      ? 'bg-emerald-600 text-white'
+                      : pasoNuevoGrupo === 1
+                      ? 'bg-emerald-600 text-white ring-2 ring-emerald-200 dark:ring-emerald-900'
+                      : 'bg-slate-200 dark:bg-slate-800 text-slate-500'
+                  }`}
+                >
+                  {pasoNuevoGrupo > 1 ? <Check className="w-3.5 h-3.5" /> : '1'}
+                </div>
+                <div className="truncate">
+                  <div className="text-[11px] font-bold leading-tight">1. Datos</div>
+                  <div className="text-[9px] opacity-75 truncate">Nombre y fin</div>
+                </div>
+              </div>
 
-            {/* Selección de Participantes */}
-            <div>
-              <label className="block font-semibold mb-1.5 text-slate-700 dark:text-slate-300">
-                Seleccionar Integrantes Iniciales ({miembrosSeleccionados.length} seleccionados)
-              </label>
-              <div className="max-h-48 overflow-y-auto space-y-1 border border-slate-200 dark:border-slate-800 rounded-xl p-2 bg-slate-50 dark:bg-slate-900/40">
-                {directorio.map((usr) => {
-                  const checkeado = miembrosSeleccionados.includes(usr.id);
-                  return (
-                    <label
-                      key={usr.id}
-                      className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-800 cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={checkeado}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setMiembrosSeleccionados((prev) => [...prev, usr.id]);
-                          } else {
-                            setMiembrosSeleccionados((prev) => prev.filter((id) => id !== usr.id));
-                          }
-                        }}
-                        className="rounded text-emerald-600 focus:ring-emerald-500"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-slate-800 dark:text-slate-100 truncate">
-                          {usr.nombreCompleto}
-                        </div>
-                        <div className="text-[10px] text-slate-400 truncate">
-                          {usr.email} {usr.cargo ? `· ${usr.cargo}` : ''}
-                        </div>
-                      </div>
-                    </label>
-                  );
-                })}
+              {/* Paso 2: Unidad */}
+              <div
+                className={`flex items-center gap-2 p-2 rounded-xl transition-all ${
+                  pasoNuevoGrupo === 2
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 font-semibold'
+                    : pasoNuevoGrupo > 2
+                    ? 'bg-slate-100 dark:bg-slate-800/80 text-emerald-600 dark:text-emerald-400'
+                    : 'bg-slate-50 dark:bg-slate-900 text-slate-400'
+                }`}
+              >
+                <div
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0 font-bold ${
+                    pasoNuevoGrupo > 2
+                      ? 'bg-emerald-600 text-white'
+                      : pasoNuevoGrupo === 2
+                      ? 'bg-emerald-600 text-white ring-2 ring-emerald-200 dark:ring-emerald-900'
+                      : 'bg-slate-200 dark:bg-slate-800 text-slate-500'
+                  }`}
+                >
+                  {pasoNuevoGrupo > 2 ? <Check className="w-3.5 h-3.5" /> : '2'}
+                </div>
+                <div className="truncate">
+                  <div className="text-[11px] font-bold leading-tight">2. Unidad</div>
+                  <div className="text-[9px] opacity-75 truncate">Negocio / Sede</div>
+                </div>
+              </div>
+
+              {/* Paso 3: Integrantes */}
+              <div
+                className={`flex items-center gap-2 p-2 rounded-xl transition-all ${
+                  pasoNuevoGrupo === 3
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 font-semibold'
+                    : 'bg-slate-50 dark:bg-slate-900 text-slate-400'
+                }`}
+              >
+                <div
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0 font-bold ${
+                    pasoNuevoGrupo === 3
+                      ? 'bg-emerald-600 text-white ring-2 ring-emerald-200 dark:ring-emerald-900'
+                      : 'bg-slate-200 dark:bg-slate-800 text-slate-500'
+                  }`}
+                >
+                  3
+                </div>
+                <div className="truncate">
+                  <div className="text-[11px] font-bold leading-tight">3. Miembros</div>
+                  <div className="text-[9px] opacity-75 truncate">Integrantes</div>
+                </div>
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
-              <button
-                type="button"
-                onClick={() => setModalNuevoGrupo(false)}
-                className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer font-semibold"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={() => crearGrupoMutation.mutate()}
-                disabled={!nuevoNombre.trim() || crearGrupoMutation.isPending}
-                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold disabled:opacity-50 cursor-pointer shadow-sm"
-              >
-                {crearGrupoMutation.isPending ? 'Creando...' : 'Crear Grupo'}
-              </button>
-            </div>
+            {/* CONTENIDO DEL PASO 1: NOMBRE Y DESCRIPCIÓN */}
+            {pasoNuevoGrupo === 1 && (
+              <div className="space-y-4 pt-1">
+                <div>
+                  <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">
+                    Nombre del grupo <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    autoFocus
+                    placeholder="Ej. Soporte Nómina - Sucursal Norte"
+                    value={nuevoNombre}
+                    onChange={(e) => setNuevoNombre(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && nuevoNombre.trim()) {
+                        e.preventDefault();
+                        setPasoNuevoGrupo(2);
+                      }
+                    }}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-xs"
+                  />
+                  {!nuevoNombre.trim() && (
+                    <p className="mt-1 text-[10px] text-slate-400">
+                      Ingresa un nombre claro que sea fácil de recordar.
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block font-semibold mb-1 text-slate-700 dark:text-slate-300">
+                    Descripción del grupo <span className="text-slate-400 font-normal"></span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Describe el propósito del grupo"
+                    value={nuevaDescripcion}
+                    onChange={(e) => setNuevaDescripcion(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-xs resize-none"
+                  />
+                </div>
+
+                {/* Botones Paso 1 */}
+                <div className="flex justify-between items-center pt-3 border-t border-slate-200 dark:border-slate-800">
+                  <button
+                    type="button"
+                    onClick={resetearModalNuevoGrupo}
+                    className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer font-semibold transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPasoNuevoGrupo(2)}
+                    disabled={!nuevoNombre.trim()}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-sm transition-all"
+                  >
+                    <span>Siguiente: Unidad de Negocio</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* CONTENIDO DEL PASO 2: UNIDAD DE NEGOCIO */}
+            {pasoNuevoGrupo === 2 && (
+              <div className="space-y-4 pt-1">
+                <div>
+                  <h4 className="font-semibold text-slate-800 dark:text-slate-200 text-xs mb-1">
+                    Selecciona la Unidad de Negocio
+                  </h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    El grupo, sus actividades derivadas y los integrantes disponibles se asociarán a la unidad seleccionada.
+                  </p>
+                </div>
+
+                {/* Lista de Unidades de Negocio */}
+                <div className="max-h-56 overflow-y-auto space-y-2 pr-1">
+                  {unidades.map((u) => {
+                    const seleccionada = nuevaUnidadId === u.id;
+                    return (
+                      <div
+                        key={u.id}
+                        onClick={() => {
+                          setNuevaUnidadId(u.id);
+                          // Limpiar integrantes seleccionados que pertenezcan a otra unidad
+                          setMiembrosSeleccionados([]);
+                        }}
+                        className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                          seleccionada
+                            ? 'border-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/30 ring-1 ring-emerald-500'
+                            : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                              seleccionada
+                                ? 'bg-emerald-600 text-white'
+                                : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                            }`}
+                          >
+                            <Building2 className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                              <span className="truncate">{u.nombre}</span>
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+                                {u.codigo}
+                              </span>
+                            </div>
+                            <div className="text-[10px] text-slate-400 truncate">
+                              {u.descripcion || `Zona horaria: ${u.zonaHoraria || 'Local'}`}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="shrink-0">
+                          <div
+                            className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+                              seleccionada
+                                ? 'border-emerald-600 bg-emerald-600 text-white'
+                                : 'border-slate-300 dark:border-slate-600'
+                            }`}
+                          >
+                            {seleccionada && <Check className="w-3 h-3 stroke-[3]" />}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Botones Paso 2 */}
+                <div className="flex justify-between items-center pt-3 border-t border-slate-200 dark:border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => setPasoNuevoGrupo(1)}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer font-semibold transition-colors"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span>Atrás</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPasoNuevoGrupo(3)}
+                    disabled={!nuevaUnidadId}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-sm transition-all"
+                  >
+                    <span>Siguiente: Seleccionar Integrantes</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* CONTENIDO DEL PASO 3: SELECCIONAR INTEGRANTES */}
+            {pasoNuevoGrupo === 3 && (
+              <div className="space-y-3 pt-1">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-semibold text-slate-800 dark:text-slate-200 text-xs">
+                      Seleccionar Integrantes Iniciales
+                    </h4>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Unidad: <span className="font-semibold text-emerald-600 dark:text-emerald-400">{unidades.find(u => u.id === nuevaUnidadId)?.nombre || 'Seleccionada'}</span>
+                    </p>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+                    {miembrosSeleccionados.length} seleccionado(s)
+                  </span>
+                </div>
+
+                {/* Barra de búsqueda y selector rápido */}
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Buscar por nombre o correo..."
+                      value={busquedaIntegrantes}
+                      onChange={(e) => setBusquedaIntegrantes(e.target.value)}
+                      className="w-full pl-8 pr-7 py-1.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    />
+                    {busquedaIntegrantes && (
+                      <button
+                        type="button"
+                        onClick={() => setBusquedaIntegrantes('')}
+                        className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const idsDisponibles = directorio
+                        .filter((u) => u.id !== usuario?.id)
+                        .map((u) => u.id);
+                      if (miembrosSeleccionados.length === idsDisponibles.length) {
+                        setMiembrosSeleccionados([]);
+                      } else {
+                        setMiembrosSeleccionados(idsDisponibles);
+                      }
+                    }}
+                    className="px-2.5 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-[11px] font-semibold text-slate-700 dark:text-slate-300 shrink-0 cursor-pointer transition-colors"
+                  >
+                    {miembrosSeleccionados.length === directorio.filter((u) => u.id !== usuario?.id).length && directorio.length > 1
+                      ? 'Deseleccionar todos'
+                      : 'Seleccionar todos'}
+                  </button>
+                </div>
+
+                {/* Lista de Integrantes */}
+                <div className="max-h-48 overflow-y-auto space-y-1 border border-slate-200 dark:border-slate-800 rounded-xl p-2 bg-slate-50/50 dark:bg-slate-900/40">
+                  {directorio
+                    .filter((usr) => {
+                      if (usr.id === usuario?.id) return false; // El usuario actual se agrega automáticamente en backend como admin
+                      if (!busquedaIntegrantes.trim()) return true;
+                      const term = busquedaIntegrantes.toLowerCase();
+                      return (
+                        usr.nombreCompleto.toLowerCase().includes(term) ||
+                        usr.email.toLowerCase().includes(term) ||
+                        (usr.cargo && usr.cargo.toLowerCase().includes(term))
+                      );
+                    })
+                    .map((usr) => {
+                      const checkeado = miembrosSeleccionados.includes(usr.id);
+                      const iniciales = usr.nombreCompleto
+                        .split(' ')
+                        .map((n) => n[0])
+                        .slice(0, 2)
+                        .join('')
+                        .toUpperCase();
+
+                      return (
+                        <label
+                          key={usr.id}
+                          className={`flex items-center gap-2.5 p-2 rounded-xl transition-all cursor-pointer ${
+                            checkeado
+                              ? 'bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/60'
+                              : 'hover:bg-slate-200/50 dark:hover:bg-slate-800/60 border border-transparent'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checkeado}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setMiembrosSeleccionados((prev) => [...prev, usr.id]);
+                              } else {
+                                setMiembrosSeleccionados((prev) => prev.filter((id) => id !== usr.id));
+                              }
+                            }}
+                            className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
+                          />
+                          <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold text-[10px] shrink-0">
+                            {iniciales}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-slate-800 dark:text-slate-100 truncate text-xs">
+                              {usr.nombreCompleto}
+                            </div>
+                            <div className="text-[10px] text-slate-400 truncate">
+                              {usr.email} {usr.cargo ? `· ${usr.cargo}` : ''}
+                            </div>
+                          </div>
+                        </label>
+                      );
+                    })}
+
+                  {directorio.filter((u) => u.id !== usuario?.id).length === 0 && (
+                    <div className="p-4 text-center text-slate-400 text-xs">
+                      No hay colaboradores adicionales en esta unidad. Podrás agregar miembros más tarde.
+                    </div>
+                  )}
+                </div>
+
+                <div className="text-[11px] text-slate-400 flex items-center gap-1.5 pt-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>
+                    Tú (<strong className="text-slate-600 dark:text-slate-300">{usuario?.nombreCompleto}</strong>) serás asignado como Administrador del grupo.
+                  </span>
+                </div>
+
+                {/* Botones Paso 3 */}
+                <div className="flex justify-between items-center pt-3 border-t border-slate-200 dark:border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => setPasoNuevoGrupo(2)}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer font-semibold transition-colors"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span>Atrás</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => crearGrupoMutation.mutate()}
+                    disabled={crearGrupoMutation.isPending || !nuevoNombre.trim()}
+                    className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold disabled:opacity-50 cursor-pointer shadow-sm transition-all"
+                  >
+                    {crearGrupoMutation.isPending ? (
+                      <span>Creando grupo...</span>
+                    ) : (
+                      <>
+                        <CheckCheck className="w-4 h-4" />
+                        <span>Crear Grupo de WhatsApp</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

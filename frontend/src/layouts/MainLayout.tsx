@@ -84,7 +84,7 @@ export const MainLayout: React.FC = () => {
     { to: '/', label: 'Dashboard Ejecutivo', icon: LayoutDashboard, visible: true },
     { to: '/proyectos', label: 'Proyectos', icon: FolderKanban, visible: tienePermiso('proyectos.ver') },
     { to: '/actividades', label: 'Actividades', icon: CheckSquare, visible: tienePermiso('actividades.ver') },
-    { to: '/chat', label: 'Chat WhatsApp', icon: MessageSquareText, visible: true },
+    { to: '/chat', label: 'Chats', icon: MessageSquareText, visible: true },
     { to: '/tableros', label: 'Tableros y Vistas', icon: Kanban, visible: tienePermiso('actividades.ver') },
     { to: '/tickets', label: 'Mesa de Ayuda / Tickets', icon: LifeBuoy, visible: tienePermiso('tickets.ver') },
     { to: '/equipos', label: 'Equipos de Trabajo', icon: Users, visible: true },
