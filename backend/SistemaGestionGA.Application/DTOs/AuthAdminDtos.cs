@@ -6,6 +6,13 @@ public record LoginRequestDto(
     [Required] string Identificador,
     [Required] string Password);
 
+public record SolicitarRecuperacionDto(
+    [Required, EmailAddress] string Email);
+
+public record RestablecerPasswordDto(
+    [Required] string Token,
+    [Required, MinLength(12)] string NuevoPassword);
+
 public record RefreshTokenRequestDto(
     [Required] string RefreshToken);
 
