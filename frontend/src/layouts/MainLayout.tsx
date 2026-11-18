@@ -27,15 +27,23 @@ import { apiFetch, NotificacionItem, tokenStorage } from '../services/api';
 export const MainLayout: React.FC = () => {
   const { usuario, unidadActivaId, setUnidadActivaId, logout, tienePermiso } = useAuth();
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
-  const [modoOscuro, setModoOscuro] = useState(false);
+  //controlar el cambio de tema
+  const [modoOscuro, setModoOscuro] = useState(()=>{
+    const temaGuardado = localStorage.getItem('theme');
+    if (temaGuardado) return temaGuardado==='dark';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
   const [notificaciones, setNotificaciones] = useState<NotificacionItem[]>([]);
   const [panelNotifAbierto, setPanelNotifAbierto] = useState(false);
 
   useEffect(() => {
     if (modoOscuro) {
       document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
     }
   }, [modoOscuro]);
 
