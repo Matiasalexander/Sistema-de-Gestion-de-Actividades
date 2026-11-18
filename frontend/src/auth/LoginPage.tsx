@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ShieldCheck, Lock, User, AlertCircle, Layers } from 'lucide-react';
 import { useAuth } from './AuthContext';
+import { apiFetch } from '../services/api';
 
 const loginSchema = z.object({
   identificador: z.string().min(2, 'Ingrese su usuario, correo o teléfono'),
@@ -15,6 +16,39 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const [errorServidor, setErrorServidor] = useState<string | null>(null);
+  const [modo, setModo] = useState<'login' | 'forgot' | 'reset'>(
+    window.location.hash.startsWith('#reset-password?') ? 'reset' : 'login');
+  const [email, setEmail] = useState('');
+  const [nuevoPassword, setNuevoPassword] = useState('');
+  const [confirmarPassword, setConfirmarPassword] = useState('');
+  const [ocupado, setOcupado] = useState(false);
+  const [mensaje, setMensaje] = useState('');
+  const token = new URLSearchParams(window.location.hash.split('?')[1] || '').get('token') || '';
+  const volver = () => {
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    setModo('login'); setErrorServidor(null); setMensaje('');
+  };
+  const solicitar = async () => {
+    setOcupado(true); setErrorServidor(null); setMensaje('');
+    try {
+      const resp = await apiFetch<{mensaje:string}>('/api/auth/forgot-password', {
+        method:'POST', body: JSON.stringify({ email }) });
+      setMensaje(resp.mensaje);
+    } catch(e:unknown) { setErrorServidor(e instanceof Error ? e.message : 'No fue posible procesar la solicitud.'); }
+    finally { setOcupado(false); }
+  };
+  const restablecer = async () => {
+    if (!token || nuevoPassword.length < 12 || nuevoPassword !== confirmarPassword) {
+      setErrorServidor('Revisa el enlace y confirma una contraseña de al menos 12 caracteres.'); return;
+    }
+    setOcupado(true); setErrorServidor(null);
+    try {
+      const resp = await apiFetch<{mensaje:string}>('/api/auth/reset-password', {
+        method:'POST', body: JSON.stringify({token, nuevoPassword}) });
+      volver(); setMensaje(resp.mensaje);
+    } catch(e:unknown) { setErrorServidor(e instanceof Error ? e.message : 'No fue posible restablecer la contraseña.'); }
+    finally {setOcupado(false);}
+  };
 
   const {
     register,
@@ -86,9 +120,9 @@ export const LoginPage: React.FC = () => {
       <div className="w-full lg:w-5/12 flex items-center justify-center p-8 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
         <div className="w-full max-w-md space-y-6">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">Iniciar sesión corporativa</h2>
+            <h2 className="text-2xl font-bold tracking-tight">{modo === 'login' ? 'Iniciar sesión corporativa' : modo === 'forgot' ? 'Recuperar acceso' : 'Nueva contraseña'}</h2>
             <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
-              Ingrese sus credenciales para acceder a las unidades autorizadas.
+              {modo === 'login' ? 'Ingrese sus credenciales para acceder a las unidades autorizadas.' : modo === 'forgot' ? 'Recibirás tu usuario y un enlace seguro en tu correo registrado.' : 'Escribe una contraseña nueva para tu cuenta.'}
             </p>
           </div>
 
@@ -102,6 +136,30 @@ export const LoginPage: React.FC = () => {
             </div>
           )}
 
+          {mensaje && <p role="status" className="p-3 rounded-xl bg-emerald-50 text-emerald-800 text-sm">{mensaje}</p>}
+          {modo === 'forgot' && <div className="space-y-4">
+            <label htmlFor="email-recuperacion" className="block text-sm font-medium">Correo registrado</label>
+            <input id="email-recuperacion" type="email" autoComplete="email" required
+              value={email} onChange={e => setEmail(e.target.value)}
+              className="w-full p-3 rounded-xl border border-slate-300 bg-white dark:bg-slate-800" />
+            <button type="button" disabled={ocupado || !email.includes('@')} onClick={solicitar}
+              className="w-full p-3 rounded-xl bg-blue-600 text-white disabled:opacity-50">Enviar enlace de recuperación</button>
+            <button type="button" onClick={volver} className="text-sm text-blue-600">Volver al inicio de sesión</button>
+          </div>}
+          {modo === 'reset' && <div className="space-y-4">
+            <label htmlFor="nueva-password" className="block text-sm font-medium">Contraseña nueva (mínimo 12 caracteres)</label>
+            <input id="nueva-password" type="password" autoComplete="new-password" value={nuevoPassword}
+              onChange={e => setNuevoPassword(e.target.value)}
+              className="w-full p-3 rounded-xl border border-slate-300 bg-white dark:bg-slate-800" />
+            <label htmlFor="confirmar-password" className="block text-sm font-medium">Confirmar contraseña</label>
+            <input id="confirmar-password" type="password" autoComplete="new-password" value={confirmarPassword}
+              onChange={e => setConfirmarPassword(e.target.value)}
+              className="w-full p-3 rounded-xl border border-slate-300 bg-white dark:bg-slate-800" />
+            <button type="button" disabled={ocupado} onClick={restablecer}
+              className="w-full p-3 rounded-xl bg-blue-600 text-white disabled:opacity-50">Guardar contraseña</button>
+            <button type="button" onClick={volver} className="text-sm text-blue-600">Volver al inicio de sesión</button>
+          </div>}
+          {modo === 'login' && <>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
             <div>
               <label htmlFor="identificador" className="block text-sm font-medium mb-1.5">
@@ -151,6 +209,9 @@ export const LoginPage: React.FC = () => {
               {isSubmitting ? 'Verificando acceso...' : 'Acceder a la Plataforma'}
             </button>
           </form>
+          <div className="text-right"><button type="button" onClick={() => {setModo('forgot');setErrorServidor(null);setMensaje('');}}
+            className="text-sm text-blue-600 hover:underline">¿Olvidaste tu usuario o contraseña?</button></div>
+          </>}
 
 
         </div>

@@ -52,7 +52,7 @@ export const UsuariosPage: React.FC = () => {
   const [nombreCompleto, setNombreCompleto] = useState('');
   const [cargo, setCargo] = useState('');
   const [telefono, setTelefono] = useState('');
-  const [password, setPassword] = useState('UsuarioGA2026!');
+  const [password, setPassword] = useState('');
   const [departamentoId, setDepartamentoId] = useState<number | undefined>(undefined);
   const [accesoGlobal, setAccesoGlobal] = useState(false);
   const [rolesIds, setRolesIds] = useState<number[]>([]);
@@ -81,6 +81,11 @@ export const UsuariosPage: React.FC = () => {
   const [descripcionDepto, setDescripcionDepto] = useState('');
   const [activaDepto, setActivaDepto] = useState(true);
   const [modalRestablecerCorpAbierto, setModalRestablecerCorpAbierto] = useState(false);
+  const [usuarioPassword, setUsuarioPassword] = useState<UsuarioLista | null>(null);
+  const [nuevoPasswordAdmin, setNuevoPasswordAdmin] = useState('');
+  const [confirmacionPasswordAdmin, setConfirmacionPasswordAdmin] = useState('');
+  const [debeCambiarPasswordAdmin, setDebeCambiarPasswordAdmin] = useState(true);
+  const [mostrarPasswordAdmin, setMostrarPasswordAdmin] = useState(false);
 
   // Consultas API reales
   const { data: usuarios = [], isLoading: cargandoUsuarios } = useQuery<UsuarioLista[]>({
@@ -135,7 +140,7 @@ export const UsuariosPage: React.FC = () => {
     setNombreCompleto('');
     setCargo('');
     setTelefono('');
-    setPassword('UsuarioGA2026!');
+    setPassword('');
     setDepartamentoId(departamentos[0]?.id);
     setAccesoGlobal(false);
     setRolesIds(roles[3] ? [roles[3].id] : []);
@@ -225,16 +230,31 @@ export const UsuariosPage: React.FC = () => {
   });
 
   const resetPasswordMutation = useMutation({
-    mutationFn: async (id: number) =>
+    mutationFn: async ({ id, nuevoPassword, debeCambiarPassword }: { id: number; nuevoPassword: string; debeCambiarPassword: boolean }) =>
       apiFetch(`/api/usuarios/${id}/reset-password`, {
         method: 'POST',
-        body: JSON.stringify({ nuevoPassword: 'AdminGA2026!', debeCambiarPassword: true }),
+        body: JSON.stringify({ nuevoPassword, debeCambiarPassword }),
       }),
     onSuccess: () => {
-      setMensajeExito('Contraseña restablecida a AdminGA2026! y sesiones previas revocadas.');
+      setUsuarioPassword(null);
+      setNuevoPasswordAdmin('');
+      setConfirmacionPasswordAdmin('');
+      setMostrarPasswordAdmin(false);
+      queryClient.invalidateQueries({ queryKey: ['auditoria'] });
+      setMensajeExito('Contraseña actualizada. Las sesiones anteriores fueron revocadas.');
       setTimeout(() => setMensajeExito(null), 4000);
     },
+    onError: (err: any) => setErrorMsg(err.message),
   });
+
+  const abrirRestablecimientoPassword = (u: UsuarioLista) => {
+    setUsuarioPassword(u);
+    setNuevoPasswordAdmin('');
+    setConfirmacionPasswordAdmin('');
+    setDebeCambiarPasswordAdmin(true);
+    setMostrarPasswordAdmin(false);
+    setErrorMsg(null);
+  };
 
   const eliminarUsuarioMutation = useMutation({
     mutationFn: async (id: number) => apiFetch(`/api/usuarios/${id}`, { method: 'DELETE' }),
@@ -650,7 +670,7 @@ export const UsuariosPage: React.FC = () => {
                               Editar
                             </button>
                             <button
-                              onClick={() => resetPasswordMutation.mutate(u.id)}
+                              onClick={() => abrirRestablecimientoPassword(u)}
                               title="Restablecer contraseña y revocar tokens"
                               className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-amber-50 text-amber-600 cursor-pointer"
                             >
@@ -979,6 +999,57 @@ export const UsuariosPage: React.FC = () => {
         </div>
       )}
 
+      {/* MODAL: RESTABLECIMIENTO MANUAL DE CONTRASEÑA */}
+      {usuarioPassword && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs">
+          <div role="dialog" aria-modal="true" aria-labelledby="titulo-reset-password" className="w-full max-w-md space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900">
+            <h3 id="titulo-reset-password" className="flex items-center gap-2 text-lg font-bold">
+              <KeyRound className="h-5 w-5 text-amber-600" /> Restablecer contraseña
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+              Usuario: <strong>{usuarioPassword.nombreCompleto} ({usuarioPassword.nombreUsuario})</strong>
+            </p>
+            <div className="space-y-1">
+              <label htmlFor="password-admin-nueva" className="text-xs font-semibold">Nueva contraseña</label>
+              <input id="password-admin-nueva" type={mostrarPasswordAdmin ? 'text' : 'password'} autoComplete="new-password"
+                value={nuevoPasswordAdmin} onChange={(e) => setNuevoPasswordAdmin(e.target.value)}
+                className="w-full rounded-xl border border-slate-300 bg-transparent px-3 py-2 dark:border-slate-700" />
+              <p className="text-xs text-slate-500">Mínimo 12 caracteres. Utiliza una contraseña única.</p>
+            </div>
+            <div className="space-y-1">
+              <label htmlFor="password-admin-confirmacion" className="text-xs font-semibold">Confirmar contraseña</label>
+              <input id="password-admin-confirmacion" type={mostrarPasswordAdmin ? 'text' : 'password'} autoComplete="new-password"
+                value={confirmacionPasswordAdmin} onChange={(e) => setConfirmacionPasswordAdmin(e.target.value)}
+                className="w-full rounded-xl border border-slate-300 bg-transparent px-3 py-2 dark:border-slate-700" />
+              {confirmacionPasswordAdmin && nuevoPasswordAdmin !== confirmacionPasswordAdmin && (
+                <p className="text-xs text-red-600">Las contraseñas no coinciden.</p>
+              )}
+            </div>
+            <label className="flex items-center gap-2 text-xs">
+              <input type="checkbox" checked={mostrarPasswordAdmin} onChange={(e) => setMostrarPasswordAdmin(e.target.checked)} />
+              Mostrar contraseña temporalmente
+            </label>
+            <label className="flex items-center gap-2 text-xs">
+              <input type="checkbox" checked={debeCambiarPasswordAdmin} onChange={(e) => setDebeCambiarPasswordAdmin(e.target.checked)} />
+              Solicitar cambio de contraseña al iniciar sesión
+            </label>
+            {resetPasswordMutation.isError && (
+              <p role="alert" className="text-xs text-red-600">{resetPasswordMutation.error?.message || 'No se pudo actualizar la contraseña.'}</p>
+            )}
+            <div className="flex justify-end gap-2 pt-2">
+              <button type="button" disabled={resetPasswordMutation.isPending}
+                onClick={() => { setUsuarioPassword(null); setNuevoPasswordAdmin(''); setConfirmacionPasswordAdmin(''); }}
+                className="rounded-xl border border-slate-300 px-4 py-2 text-xs font-semibold dark:border-slate-700">Cancelar</button>
+              <button type="button" disabled={resetPasswordMutation.isPending || nuevoPasswordAdmin.length < 12 || nuevoPasswordAdmin !== confirmacionPasswordAdmin}
+                onClick={() => resetPasswordMutation.mutate({ id: usuarioPassword.id, nuevoPassword: nuevoPasswordAdmin, debeCambiarPassword: debeCambiarPasswordAdmin })}
+                className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
+                {resetPasswordMutation.isPending ? 'Guardando...' : 'Guardar contraseña'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* MODAL ALTA / EDICIÓN DE USUARIO */}
       {modalUsuarioAbierto && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -1053,7 +1124,7 @@ export const UsuariosPage: React.FC = () => {
               </div>
               {!usuarioEditando && (
                 <div>
-                  <label className="block font-semibold mb-1">Contraseña Inicial</label>
+                  <label className="block font-semibold mb-1">Contraseña Inicial (mínimo 12 caracteres)</label>
                   <input
                     type="password"
                     value={password}
@@ -1149,6 +1220,7 @@ export const UsuariosPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => guardarUsuarioMutation.mutate()}
+                disabled={guardarUsuarioMutation.isPending || (!usuarioEditando && password.length < 12)}
                 className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold cursor-pointer"
               >
                 Guardar Usuario
