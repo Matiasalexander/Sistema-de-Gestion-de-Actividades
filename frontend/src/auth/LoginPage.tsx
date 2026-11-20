@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   User, 
   Lock, 
@@ -8,51 +9,101 @@ import {
   ChevronDown, 
   ArrowRight, 
   ShieldCheck,
-  Sparkles
+  Sparkles,
+  AlertCircle
 } from 'lucide-react';
+import { useAuth } from './AuthContext';
 
 export const LoginPage: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
+
+  // Estados del formulario
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [businessUnit, setBusinessUnit] = useState('corp');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Estados de control
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Ruta a la que se redirigirá tras iniciar sesión
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setTimeout(() => {
+    setErrorMessage(null);
+
+    const userClean = identifier.trim();
+    if (!userClean || !password.trim()) {
+      setErrorMessage('Por favor ingrese su usuario y contraseña.');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      // Invocación flexible compatible con AuthContext
+      // Si el context acepta objeto ({ username, password }) o parámetros individuales (username, password)
+      if (typeof login === 'function') {
+        try {
+          await (login as any)({
+            username: userClean,
+            email: userClean,
+            password: password,
+            businessUnit: businessUnit,
+            rememberMe: rememberMe
+          });
+        } catch (firstErr: any) {
+          // Si el AuthContext espera parámetros individuales: login(username, password)
+          if (firstErr?.name === 'TypeError' || !firstErr?.response) {
+            await (login as any)(userClean, password);
+          } else {
+            throw firstErr;
+          }
+        }
+      }
+
+      // Redirección exitosa
+      navigate(from, { replace: true });
+    } catch (error: any) {
+      console.error('Error de autenticación:', error);
+      const message = 
+        error?.response?.data?.message || 
+        error?.response?.data?.title || 
+        error?.message || 
+        'Credenciales incorrectas o servidor no disponible.';
+      setErrorMessage(message);
+    } finally {
       setIsLoading(false);
-      console.log('Login attempt:', { identifier, password, businessUnit, rememberMe });
-    }, 1000);
+    }
   };
 
   return (
     <div className="relative min-h-screen w-full bg-[#000f20] bg-gradient-to-br from-[#00162e] via-[#000f20] to-[#000814] flex items-center justify-center p-4 sm:p-6 lg:p-8 font-sans antialiased overflow-hidden selection:bg-blue-500 selection:text-white">
-      
-      {/* ---------------- LUCES ORBITALES DE FONDO (MESH GRADIENT) ---------------- */}
+
+      {/* Luces orbitales de fondo */}
       <div className="absolute top-1/4 -left-20 w-96 h-96 bg-blue-600/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-sky-500/15 rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute -top-32 right-1/3 w-80 h-80 bg-blue-400/10 rounded-full blur-[100px] pointer-events-none" />
 
-      {/* ---------------- TARJETA PRINCIPAL EN VIDRIO ESMERILADO ---------------- */}
+      {/* Tarjeta principal Glassmorphism */}
       <div className="relative w-full max-w-md rounded-3xl bg-white/[0.04] backdrop-blur-2xl border border-white/10 shadow-[0_25px_60px_-15px_rgba(0,15,32,0.9)] p-7 sm:p-10 overflow-hidden transition-all duration-300 hover:border-white/[0.15]">
-        
-        {/* Haz de luz sutil en el borde superior */}
+
+        {/* Resplandor superior sutil */}
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
 
-        {/* ---------------- CABECERA & LOGOTIPO ---------------- */}
+        {/* Cabecera & Logotipo */}
         <div className="flex flex-col items-center text-center space-y-4 mb-8">
-          
-          {/* Contenedor del Logo con fondo traslúcido */}
           <div className="group relative px-5 py-3 rounded-2xl bg-white/[0.06] border border-white/10 backdrop-blur-md shadow-lg shadow-black/20 flex items-center justify-center transition-all duration-300 hover:bg-white/[0.1] hover:scale-105">
             <img 
               src="/assets/ANDERSONS-negro.png" 
               alt="Grupo Anderson's" 
               className="h-7 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_8px_rgba(255,255,255,0.25)]"
               onError={(e) => {
-                // Fallback de texto estilizado si no encuentra la imagen local
                 (e.target as HTMLElement).style.display = 'none';
               }}
             />
@@ -73,13 +124,20 @@ export const LoginPage: React.FC = () => {
               Ingrese con sus credenciales autorizadas para acceder a sus tableros y mesa de servicio.
             </p>
           </div>
-
         </div>
 
-        {/* ---------------- FORMULARIO DE ACCESO ---------------- */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Banner de error */}
+        {errorMessage && (
+          <div className="mb-5 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/25 flex items-start gap-2.5 text-rose-300 text-xs">
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <span className="leading-relaxed">{errorMessage}</span>
+          </div>
+        )}
 
-          {/* Campo: Identificador */}
+        {/* Formulario de Login */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          
+          {/* Identificador / Usuario */}
           <div className="space-y-1.5">
             <label 
               htmlFor="identifier" 
@@ -93,7 +151,9 @@ export const LoginPage: React.FC = () => {
               </span>
               <input
                 id="identifier"
+                name="username"
                 type="text"
+                autoComplete="username"
                 required
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
@@ -103,7 +163,7 @@ export const LoginPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Campo: Contraseña con Toggle */}
+          {/* Contraseña */}
           <div className="space-y-1.5">
             <div className="flex justify-between items-center">
               <label 
@@ -125,7 +185,9 @@ export const LoginPage: React.FC = () => {
               </span>
               <input
                 id="password"
+                name="password"
                 type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -143,7 +205,7 @@ export const LoginPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Campo: Unidad de Negocio */}
+          {/* Unidad de Negocio */}
           <div className="space-y-1.5">
             <label 
               htmlFor="businessUnit" 
@@ -172,7 +234,7 @@ export const LoginPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Opciones: Recordar sesión */}
+          {/* Opciones adicionales */}
           <div className="flex items-center justify-between pt-1">
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
@@ -189,7 +251,7 @@ export const LoginPage: React.FC = () => {
             </span>
           </div>
 
-          {/* Botón Principal de Acceso */}
+          {/* Botón de Envío */}
           <button
             type="submit"
             disabled={isLoading}
@@ -213,7 +275,7 @@ export const LoginPage: React.FC = () => {
             </span>
           </div>
 
-          {/* Botón SSO Corporativo */}
+          {/* SSO Corporativo */}
           <button
             type="button"
             className="w-full py-2.5 px-4 rounded-xl text-xs font-medium text-blue-100/90 bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 transition-all flex items-center justify-center gap-2.5 hover:border-white/20 active:scale-[0.99]"
@@ -226,17 +288,14 @@ export const LoginPage: React.FC = () => {
             </svg>
             <span>Microsoft Active Directory (SSO)</span>
           </button>
-
         </form>
 
-        {/* ---------------- PIE DE PÁGINA ---------------- */}
+        {/* Pie de Página */}
         <div className="mt-8 pt-4 border-t border-white/[0.08] flex items-center justify-between text-[11px] text-blue-200/50">
           <span>Grupo Anderson's © 2026</span>
           <span className="font-mono">v1.0 &bull; .NET &amp; SQL Server</span>
         </div>
-
       </div>
-
     </div>
   );
 };
