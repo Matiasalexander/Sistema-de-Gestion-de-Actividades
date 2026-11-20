@@ -1,3 +1,7 @@
+// ==========================================
+// INTERFACES DE MODELO Y AUTENTICACIÓN
+// ==========================================
+
 export interface UnidadResumen {
   id: number;
   codigo: string;
@@ -513,6 +517,10 @@ export interface ChatMensajeItem {
   esMio: boolean;
 }
 
+// ==========================================
+// ALMACENAMIENTO DE TOKENS
+// ==========================================
+
 const TOKEN_KEY = 'sga_access_token';
 const REFRESH_KEY = 'sga_refresh_token';
 
@@ -529,6 +537,31 @@ export const tokenStorage = {
   },
 };
 
+// ==========================================
+// RESOLUCIÓN DE URL BASE Y CLIENTE HTTP
+// ==========================================
+
+/**
+ * Obtiene la URL base de la API asegurando que no termine en '/'
+ * Ejemplo en producción: https://sistemagestionga-api-prod-gqcgfbfqadf3gkam.mexicocentral-01.azurewebsites.net
+ */
+const RAW_API_URL = (import.meta.env.VITE_API_URL as string | undefined) || '';
+export const API_BASE_URL = RAW_API_URL.endsWith('/')
+  ? RAW_API_URL.slice(0, -1)
+  : RAW_API_URL;
+
+/**
+ * Construye la URL completa apuntando al backend
+ */
+function buildFullUrl(path: string): string {
+  // Si ya es una URL absoluta (http/https), se respeta
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
+  }
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  return `${API_BASE_URL}${cleanPath}`;
+}
+
 export async function apiFetch<T>(
   path: string,
   options: RequestInit = {},
@@ -536,6 +569,7 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const token = tokenStorage.getAccess();
   const headers = new Headers(options.headers || {});
+  
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
   }
@@ -543,12 +577,22 @@ export async function apiFetch<T>(
     headers.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(path, { ...options, headers });
+  // Se resuelve la URL absoluta hacia la API de Azure
+  const targetUrl = buildFullUrl(path);
 
-  if (response.status === 401 && reintento && !path.includes('/api/auth/login') && !path.includes('/api/auth/refresh')) {
+  const response = await fetch(targetUrl, { ...options, headers });
+
+  // Manejo de expiración de token y refresco automático
+  if (
+    response.status === 401 &&
+    reintento &&
+    !path.includes('/api/auth/login') &&
+    !path.includes('/api/auth/refresh')
+  ) {
     const refreshToken = tokenStorage.getRefresh();
     if (refreshToken) {
-      const refreshResp = await fetch('/api/auth/refresh', {
+      const refreshUrl = buildFullUrl('/api/auth/refresh');
+      const refreshResp = await fetch(refreshUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refreshToken }),
@@ -570,8 +614,9 @@ export async function apiFetch<T>(
       const errJson = await response.json();
       if (errJson.error) errorMsg = errJson.error;
       else if (errJson.title) errorMsg = errJson.title;
+      else if (errJson.message) errorMsg = errJson.message;
     } catch {
-      // ignore parse error
+      // Ignorar error de parsing si la respuesta no es JSON
     }
     throw new Error(errorMsg);
   }
