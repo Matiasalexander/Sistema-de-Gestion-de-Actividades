@@ -1,221 +1,244 @@
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ShieldCheck, Lock, User, AlertCircle, Layers } from 'lucide-react';
-import { useAuth } from './AuthContext';
-import { apiFetch } from '../services/api';
-
-const loginSchema = z.object({
-  identificador: z.string().min(2, 'Ingrese su usuario, correo o teléfono'),
-  password: z.string().min(6, 'Ingrese su contraseña'),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
+import { 
+  User, 
+  Lock, 
+  Eye, 
+  EyeOff, 
+  Building2, 
+  ChevronDown, 
+  ArrowRight, 
+  ShieldCheck,
+  Sparkles
+} from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
-  const { login } = useAuth();
-  const [errorServidor, setErrorServidor] = useState<string | null>(null);
-  const [modo, setModo] = useState<'login' | 'forgot' | 'reset'>(
-    window.location.hash.startsWith('#reset-password?') ? 'reset' : 'login');
-  const [email, setEmail] = useState('');
-  const [nuevoPassword, setNuevoPassword] = useState('');
-  const [confirmarPassword, setConfirmarPassword] = useState('');
-  const [ocupado, setOcupado] = useState(false);
-  const [mensaje, setMensaje] = useState('');
-  const token = new URLSearchParams(window.location.hash.split('?')[1] || '').get('token') || '';
-  const volver = () => {
-    window.history.replaceState(null, '', window.location.pathname + window.location.search);
-    setModo('login'); setErrorServidor(null); setMensaje('');
-  };
-  const solicitar = async () => {
-    setOcupado(true); setErrorServidor(null); setMensaje('');
-    try {
-      const resp = await apiFetch<{mensaje:string}>('/api/auth/forgot-password', {
-        method:'POST', body: JSON.stringify({ email }) });
-      setMensaje(resp.mensaje);
-    } catch(e:unknown) { setErrorServidor(e instanceof Error ? e.message : 'No fue posible procesar la solicitud.'); }
-    finally { setOcupado(false); }
-  };
-  const restablecer = async () => {
-    if (!token || nuevoPassword.length < 12 || nuevoPassword !== confirmarPassword) {
-      setErrorServidor('Revisa el enlace y confirma una contraseña de al menos 12 caracteres.'); return;
-    }
-    setOcupado(true); setErrorServidor(null);
-    try {
-      const resp = await apiFetch<{mensaje:string}>('/api/auth/reset-password', {
-        method:'POST', body: JSON.stringify({token, nuevoPassword}) });
-      volver(); setMensaje(resp.mensaje);
-    } catch(e:unknown) { setErrorServidor(e instanceof Error ? e.message : 'No fue posible restablecer la contraseña.'); }
-    finally {setOcupado(false);}
-  };
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
+  const [businessUnit, setBusinessUnit] = useState('corp');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      identificador: '',
-      password: '',
-    },
-  });
-
-  const onSubmit = async (values: LoginFormValues) => {
-    setErrorServidor(null);
-    try {
-      await login(values.identificador, values.password);
-    } catch (err: any) {
-      setErrorServidor(err.message || 'No fue posible iniciar sesión.');
-    }
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      console.log('Login attempt:', { identifier, password, businessUnit, rememberMe });
+    }, 1000);
   };
-
 
   return (
-    <div className="min-h-screen flex bg-slate-950 text-white">
-      {/* Panel Izquierdo Corporativo */}
-      <div className="hidden lg:flex lg:w-7/12 relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-slate-950 p-12 flex-col justify-between border-r border-slate-800">
-        <div className="relative z-10">
-          <div className="inline-flex items-center gap-3 px-3.5 py-2 rounded-xl bg-blue-500/10 border border-blue-400/20 text-blue-300 text-sm font-medium">
-            <Layers className="w-5 h-5 text-blue-400" />
-            <span>Plataforma Corporativa · Grupo GA</span>
-          </div>
-          <h1 className="mt-8 text-4xl font-bold tracking-tight text-white leading-tight">
-            Sistema de Gestión GA
-          </h1>
-          <p className="mt-4 text-lg text-slate-300 max-w-xl leading-relaxed">
-            Gestión unificada de portafolio de proyectos, tableros operativos de actividades,
-            mesa de ayuda corporativa y cumplimiento de acuerdos de nivel de servicio (SLA).
-          </p>
-        </div>
+    <div className="relative min-h-screen w-full bg-[#000f20] bg-gradient-to-br from-[#00162e] via-[#000f20] to-[#000814] flex items-center justify-center p-4 sm:p-6 lg:p-8 font-sans antialiased overflow-hidden selection:bg-blue-500 selection:text-white">
+      
+      {/* ---------------- LUCES ORBITALES DE FONDO (MESH GRADIENT) ---------------- */}
+      <div className="absolute top-1/4 -left-20 w-96 h-96 bg-blue-600/20 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-sky-500/15 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute -top-32 right-1/3 w-80 h-80 bg-blue-400/10 rounded-full blur-[100px] pointer-events-none" />
 
-        <div className="relative z-10 grid grid-cols-2 gap-4 my-8">
-          <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800/90 backdrop-blur">
-            <div className="text-blue-400 font-semibold text-sm">Work Management</div>
-            <div className="mt-1 text-base font-medium text-white">Tableros Kanban, Gantt y Carga</div>
-            <p className="mt-1 text-xs text-slate-400">
-              Dependencias sin ciclos, subtareas, checklists, tiempos trabajados y avance automático ponderado.
-            </p>
-          </div>
-          <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800/90 backdrop-blur">
-            <div className="text-emerald-400 font-semibold text-sm">Service Desk & SLA</div>
-            <div className="mt-1 text-base font-medium text-white">Mesa de Ayuda y Escalamiento</div>
-            <p className="mt-1 text-xs text-slate-400">
-              Folios únicos, políticas SLA con calendario laboral, pausas controladas y actividades técnicas vinculadas.
-            </p>
-          </div>
-        </div>
+      {/* ---------------- TARJETA PRINCIPAL EN VIDRIO ESMERILADO ---------------- */}
+      <div className="relative w-full max-w-md rounded-3xl bg-white/[0.04] backdrop-blur-2xl border border-white/10 shadow-[0_25px_60px_-15px_rgba(0,15,32,0.9)] p-7 sm:p-10 overflow-hidden transition-all duration-300 hover:border-white/[0.15]">
+        
+        {/* Haz de luz sutil en el borde superior */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
 
-        <div className="relative z-10 flex items-center justify-between text-xs text-slate-400 border-t border-slate-800/80 pt-6">
-          <span className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            Seguridad RBAC + Aislamiento estricto por Unidad de Negocio
-          </span>
-          <span>v1.0 · ASP.NET Core & SQL Server</span>
-        </div>
-      </div>
+        {/* ---------------- CABECERA & LOGOTIPO ---------------- */}
+        <div className="flex flex-col items-center text-center space-y-4 mb-8">
+          
+          {/* Contenedor del Logo con fondo traslúcido */}
+          <div className="group relative px-5 py-3 rounded-2xl bg-white/[0.06] border border-white/10 backdrop-blur-md shadow-lg shadow-black/20 flex items-center justify-center transition-all duration-300 hover:bg-white/[0.1] hover:scale-105">
+            <img 
+              src="/assets/ANDERSONS-negro.png" 
+              alt="Grupo Anderson's" 
+              className="h-7 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_8px_rgba(255,255,255,0.25)]"
+              onError={(e) => {
+                // Fallback de texto estilizado si no encuentra la imagen local
+                (e.target as HTMLElement).style.display = 'none';
+              }}
+            />
+            <span className="text-white font-extrabold tracking-widest text-xs uppercase pl-2 font-mono">
+              GRUPO ANDERSON'S
+            </span>
+          </div>
 
-      {/* Panel Derecho Formulario */}
-      <div className="w-full lg:w-5/12 flex items-center justify-center p-8 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
-        <div className="w-full max-w-md space-y-6">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">{modo === 'login' ? 'Iniciar sesión corporativa' : modo === 'forgot' ? 'Recuperar acceso' : 'Nueva contraseña'}</h2>
-            <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
-              {modo === 'login' ? 'Ingrese sus credenciales para acceder a las unidades autorizadas.' : modo === 'forgot' ? 'Recibirás tu usuario y un enlace seguro en tu correo registrado.' : 'Escribe una contraseña nueva para tu cuenta.'}
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-400/20 text-blue-300 text-[11px] font-semibold tracking-wide">
+              <Sparkles className="w-3 h-3 text-blue-300" />
+              <span>Plataforma Corporativa</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              Sistema de Gestión GA
+            </h1>
+            <p className="text-xs text-blue-100/70 font-light max-w-xs mx-auto">
+              Ingrese con sus credenciales autorizadas para acceder a sus tableros y mesa de servicio.
             </p>
           </div>
 
-          {errorServidor && (
-            <div
-              role="alert"
-              className="flex items-start gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm"
+        </div>
+
+        {/* ---------------- FORMULARIO DE ACCESO ---------------- */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+
+          {/* Campo: Identificador */}
+          <div className="space-y-1.5">
+            <label 
+              htmlFor="identifier" 
+              className="block text-[11px] font-bold text-blue-100/90 uppercase tracking-wider"
             >
-              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-              <span>{errorServidor}</span>
+              Usuario o Correo Corporativo
+            </label>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-blue-300">
+                <User className="w-4 h-4" />
+              </span>
+              <input
+                id="identifier"
+                type="text"
+                required
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder="matias.arceo@grupoandersons.com"
+                className="w-full pl-10 pr-4 py-3 text-xs text-white rounded-xl bg-white/[0.05] border border-white/10 placeholder-blue-200/30 transition-all duration-200 focus:outline-none focus:bg-white/[0.08] focus:border-blue-400 focus:ring-4 focus:ring-blue-500/20"
+              />
             </div>
-          )}
+          </div>
 
-          {mensaje && <p role="status" className="p-3 rounded-xl bg-emerald-50 text-emerald-800 text-sm">{mensaje}</p>}
-          {modo === 'forgot' && <div className="space-y-4">
-            <label htmlFor="email-recuperacion" className="block text-sm font-medium">Correo registrado</label>
-            <input id="email-recuperacion" type="email" autoComplete="email" required
-              value={email} onChange={e => setEmail(e.target.value)}
-              className="w-full p-3 rounded-xl border border-slate-300 bg-white dark:bg-slate-800" />
-            <button type="button" disabled={ocupado || !email.includes('@')} onClick={solicitar}
-              className="w-full p-3 rounded-xl bg-blue-600 text-white disabled:opacity-50">Enviar enlace de recuperación</button>
-            <button type="button" onClick={volver} className="text-sm text-blue-600">Volver al inicio de sesión</button>
-          </div>}
-          {modo === 'reset' && <div className="space-y-4">
-            <label htmlFor="nueva-password" className="block text-sm font-medium">Contraseña nueva (mínimo 12 caracteres)</label>
-            <input id="nueva-password" type="password" autoComplete="new-password" value={nuevoPassword}
-              onChange={e => setNuevoPassword(e.target.value)}
-              className="w-full p-3 rounded-xl border border-slate-300 bg-white dark:bg-slate-800" />
-            <label htmlFor="confirmar-password" className="block text-sm font-medium">Confirmar contraseña</label>
-            <input id="confirmar-password" type="password" autoComplete="new-password" value={confirmarPassword}
-              onChange={e => setConfirmarPassword(e.target.value)}
-              className="w-full p-3 rounded-xl border border-slate-300 bg-white dark:bg-slate-800" />
-            <button type="button" disabled={ocupado} onClick={restablecer}
-              className="w-full p-3 rounded-xl bg-blue-600 text-white disabled:opacity-50">Guardar contraseña</button>
-            <button type="button" onClick={volver} className="text-sm text-blue-600">Volver al inicio de sesión</button>
-          </div>}
-          {modo === 'login' && <>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-            <div>
-              <label htmlFor="identificador" className="block text-sm font-medium mb-1.5">
-                Usuario, correo o teléfono móvil
-              </label>
-              <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                <input
-                  id="identificador"
-                  type="text"
-                  autoComplete="username"
-                  placeholder="Usuario, correo o teléfono"
-                  {...register('identificador')}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
-                />
-              </div>
-              {errors.identificador && (
-                <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.identificador.message}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-1.5">
+          {/* Campo: Contraseña con Toggle */}
+          <div className="space-y-1.5">
+            <div className="flex justify-between items-center">
+              <label 
+                htmlFor="password" 
+                className="block text-[11px] font-bold text-blue-100/90 uppercase tracking-wider"
+              >
                 Contraseña
               </label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                <input
-                  id="password"
-                  type="password"
-                  autoComplete="current-password"
-                  placeholder="••••••••••••"
-                  {...register('password')}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
-                />
-              </div>
-              {errors.password && (
-                <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.password.message}</p>
-              )}
+              <a 
+                href="#forgot" 
+                className="text-[11px] text-blue-400 hover:text-blue-300 hover:underline transition-colors font-medium"
+              >
+                ¿Olvidaste tu contraseña?
+              </a>
             </div>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-blue-300">
+                <Lock className="w-4 h-4" />
+              </span>
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••••••"
+                className="w-full pl-10 pr-10 py-3 text-xs text-white rounded-xl bg-white/[0.05] border border-white/10 placeholder-blue-200/30 transition-all duration-200 focus:outline-none focus:bg-white/[0.08] focus:border-blue-400 focus:ring-4 focus:ring-blue-500/20 font-mono"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-blue-200/50 hover:text-white transition-colors"
+                aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold text-sm shadow-sm transition cursor-pointer"
+          {/* Campo: Unidad de Negocio */}
+          <div className="space-y-1.5">
+            <label 
+              htmlFor="businessUnit" 
+              className="block text-[11px] font-bold text-blue-100/90 uppercase tracking-wider"
             >
-              {isSubmitting ? 'Verificando acceso...' : 'Acceder a la Plataforma'}
-            </button>
-          </form>
-          <div className="text-right"><button type="button" onClick={() => {setModo('forgot');setErrorServidor(null);setMensaje('');}}
-            className="text-sm text-blue-600 hover:underline">¿Olvidaste tu usuario o contraseña?</button></div>
-          </>}
+              Unidad de Negocio / Sucursal
+            </label>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-blue-300">
+                <Building2 className="w-4 h-4" />
+              </span>
+              <select
+                id="businessUnit"
+                value={businessUnit}
+                onChange={(e) => setBusinessUnit(e.target.value)}
+                className="w-full pl-10 pr-10 py-3 text-xs text-white rounded-xl bg-white/[0.05] border border-white/10 transition-all duration-200 focus:outline-none focus:bg-[#00162e] focus:border-blue-400 focus:ring-4 focus:ring-blue-500/20 appearance-none cursor-pointer"
+              >
+                <option value="corp" className="bg-[#00162e] text-white">Grupo Anderson's Corporativo</option>
+                <option value="frogs" className="bg-[#00162e] text-white">Señor Frog's</option>
+                <option value="harrys" className="bg-[#00162e] text-white">Harry's Steakhouse</option>
+                <option value="charlies" className="bg-[#00162e] text-white">Carlos'n Charlie's</option>
+              </select>
+              <span className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-blue-200/50">
+                <ChevronDown className="w-4 h-4" />
+              </span>
+            </div>
+          </div>
 
+          {/* Opciones: Recordar sesión */}
+          <div className="flex items-center justify-between pt-1">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 rounded bg-white/[0.08] border-white/20 text-blue-600 focus:ring-blue-500/30"
+              />
+              <span className="text-xs text-blue-100/80 font-light">Recordar mi sesión</span>
+            </label>
+            <span className="flex items-center gap-1 text-[11px] text-blue-200/70 font-mono">
+              <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
+              <span>RBAC Activo</span>
+            </span>
+          </div>
 
+          {/* Botón Principal de Acceso */}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full mt-2 group relative flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 shadow-lg shadow-blue-600/30 active:scale-[0.98] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isLoading ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <>
+                <span>Acceder a la Plataforma</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </>
+            )}
+          </button>
+
+          {/* Separador */}
+          <div className="relative py-2 flex items-center justify-center">
+            <span className="absolute inset-x-0 h-px bg-white/10" />
+            <span className="relative bg-[#001328] px-3 text-[10px] text-blue-200/50 uppercase tracking-widest font-semibold rounded-full border border-white/5">
+              Acceso Institucional
+            </span>
+          </div>
+
+          {/* Botón SSO Corporativo */}
+          <button
+            type="button"
+            className="w-full py-2.5 px-4 rounded-xl text-xs font-medium text-blue-100/90 bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 transition-all flex items-center justify-center gap-2.5 hover:border-white/20 active:scale-[0.99]"
+          >
+            <svg className="w-4 h-4 shrink-0" viewBox="0 0 23 23">
+              <path fill="#f35325" d="M1 1h10v10H1z"/>
+              <path fill="#81bc06" d="M12 1h10v10H12z"/>
+              <path fill="#05a6f0" d="M1 12h10v10H1z"/>
+              <path fill="#ffba08" d="M12 12h10v10H12z"/>
+            </svg>
+            <span>Microsoft Active Directory (SSO)</span>
+          </button>
+
+        </form>
+
+        {/* ---------------- PIE DE PÁGINA ---------------- */}
+        <div className="mt-8 pt-4 border-t border-white/[0.08] flex items-center justify-between text-[11px] text-blue-200/50">
+          <span>Grupo Anderson's © 2026</span>
+          <span className="font-mono">v1.0 &bull; .NET &amp; SQL Server</span>
         </div>
+
       </div>
+
     </div>
   );
 };
+
+export default LoginPage;
