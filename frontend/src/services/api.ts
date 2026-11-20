@@ -542,11 +542,17 @@ export const tokenStorage = {
 // ==========================================
 
 /**
- * Obtiene la URL base de la API asegurando que no termine en '/'
- * Ejemplo en producción: https://sistemagestionga-api-prod-gqcgfbfqadf3gkam.mexicocentral-01.azurewebsites.net
+ * Acceso seguro a import.meta.env para evitar el error TS2339 en TypeScript
  */
-const RAW_API_URL = (import.meta.env.VITE_API_URL as string | undefined) || '';
-export const API_BASE_URL = RAW_API_URL.endsWith('/')
+interface ViteImportMetaEnv {
+  VITE_API_URL?: string;
+  [key: string]: string | boolean | undefined;
+}
+
+const envSource = (import.meta as unknown as { env?: ViteImportMetaEnv }).env;
+const RAW_API_URL: string = envSource?.VITE_API_URL || '';
+
+export const API_BASE_URL: string = RAW_API_URL.endsWith('/')
   ? RAW_API_URL.slice(0, -1)
   : RAW_API_URL;
 
@@ -554,7 +560,6 @@ export const API_BASE_URL = RAW_API_URL.endsWith('/')
  * Construye la URL completa apuntando al backend
  */
 function buildFullUrl(path: string): string {
-  // Si ya es una URL absoluta (http/https), se respeta
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
   }
@@ -569,7 +574,7 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const token = tokenStorage.getAccess();
   const headers = new Headers(options.headers || {});
-  
+
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
   }
@@ -577,12 +582,10 @@ export async function apiFetch<T>(
     headers.set('Content-Type', 'application/json');
   }
 
-  // Se resuelve la URL absoluta hacia la API de Azure
   const targetUrl = buildFullUrl(path);
 
   const response = await fetch(targetUrl, { ...options, headers });
 
-  // Manejo de expiración de token y refresco automático
   if (
     response.status === 401 &&
     reintento &&
@@ -616,7 +619,7 @@ export async function apiFetch<T>(
       else if (errJson.title) errorMsg = errJson.title;
       else if (errJson.message) errorMsg = errJson.message;
     } catch {
-      // Ignorar error de parsing si la respuesta no es JSON
+      // Ignorar error si no es JSON
     }
     throw new Error(errorMsg);
   }
