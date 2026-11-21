@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Security.Cryptography;
+using SistemaGestionGA.API.Services;
 using Microsoft.EntityFrameworkCore;
 using SistemaGestionGA.Application.DTOs;
 using SistemaGestionGA.Application.Interfaces;
@@ -15,7 +18,9 @@ namespace SistemaGestionGA.API.Controllers;
 public class AuthController(
     ApplicationDbContext db,
     JwtTokenService jwtService,
-    ICurrentUserService currentUser) : ControllerBase
+    ICurrentUserService currentUser,
+    IPasswordRecoveryMailer recoveryMailer,
+    IConfiguration configuration) : ControllerBase
 {
     [HttpPost("login")]
     [AllowAnonymous]
@@ -29,8 +34,8 @@ public class AuthController(
             .Include(u => u.UsuarioRoles).ThenInclude(ur => ur.Rol!).ThenInclude(r => r.RolPermisos).ThenInclude(rp => rp.Permiso)
             .Include(u => u.UsuarioUnidades).ThenInclude(uu => uu.Unidad)
             .FirstOrDefaultAsync(u =>
-                u.NombreUsuario == identificador || 
-                u.Email == identificador || 
+                u.NombreUsuario == identificador ||
+                u.Email == identificador ||
                 u.Telefono == identificador, ct);
 
         // Si no se encontró por coincidencia directa y el identificador tiene al menos 10 dígitos numéricos,
@@ -104,6 +109,82 @@ public class AuthController(
         await db.SaveChangesAsync(ct);
 
         return Ok(new LoginResponseDto(accessToken, refreshTokenPlano, expiraEnUtc, dtoAutenticado));
+    }
+
+    // Respuesta genérica: no confirma si el correo está registrado.
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    [EnableRateLimiting("password-recovery")]
+    public async Task<IActionResult> SolicitarRecuperacion([FromBody] SolicitarRecuperacionDto request, CancellationToken ct)
+    {
+        var email = request.Email.Trim();
+        var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Email == email && u.Activo, ct);
+        if (usuario != null)
+        {
+            var frontendUrl = configuration["PasswordRecovery:FrontendUrl"];
+            if (string.IsNullOrWhiteSpace(frontendUrl) ||
+                !Uri.TryCreate(frontendUrl, UriKind.Absolute, out var baseUrl) ||
+                (baseUrl.Scheme != Uri.UriSchemeHttps && !baseUrl.IsLoopback))
+                throw new InvalidOperationException("Configurar una URL de frontend segura para recuperación.");
+
+            // El enlace usa un fragmento (#) para evitar que el token viaje en requests HTTP GET.
+            var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(48))
+                .TrimEnd('=').Replace('+', '-').Replace('/', '_');
+            var hash = JwtTokenService.CalcularHashSha256(token);
+            var enlace = frontendUrl.TrimEnd('/') + "/#reset-password?token=" + Uri.EscapeDataString(token);
+
+            // Enviar antes de persistir, para no invalidar un enlace previo si falla SMTP.
+            await recoveryMailer.EnviarAsync(usuario.Email, usuario.NombreUsuario, enlace, ct);
+            usuario.TokenRecuperacionHash = hash;
+            usuario.TokenRecuperacionExpiraUtc = DateTime.UtcNow.AddMinutes(15);
+            await db.SaveChangesAsync(ct);
+        }
+        return Ok(new { mensaje = "Si la cuenta está registrada y activa, recibirás instrucciones en su correo." });
+    }
+
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    [EnableRateLimiting("password-recovery")]
+    public async Task<IActionResult> RestablecerPassword([FromBody] RestablecerPasswordDto request, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(request.Token) || request.Token.Length > 256 ||
+            string.IsNullOrWhiteSpace(request.NuevoPassword) || request.NuevoPassword.Length < 12)
+            return BadRequest(new { mensaje = "Solicitud de recuperación inválida." });
+
+        var hash = JwtTokenService.CalcularHashSha256(request.Token);
+        var ahora = DateTime.UtcNow;
+        var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Activo &&
+            u.TokenRecuperacionHash == hash && u.TokenRecuperacionExpiraUtc > ahora, ct);
+        if (usuario == null)
+            return BadRequest(new { mensaje = "El enlace es inválido o ha expirado. Solicita uno nuevo." });
+
+        usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NuevoPassword);
+        usuario.TokenRecuperacionHash = null;
+        usuario.TokenRecuperacionExpiraUtc = null;
+        usuario.DebeCambiarPassword = false;
+        usuario.IntentosFallidos = 0;
+        usuario.BloqueadoHastaUtc = null;
+        usuario.FechaModificacionUtc = ahora;
+        var activos = await db.RefreshTokens
+            .Where(t => t.UsuarioId == usuario.Id && t.FechaRevocacionUtc == null).ToListAsync(ct);
+        foreach (var token in activos)
+        {
+            token.FechaRevocacionUtc = ahora;
+            token.MotivoRevocacion = "Recuperación de contraseña";
+        }
+        db.AuditoriaEventos.Add(new AuditoriaEvento
+        {
+            UsuarioId = usuario.Id,
+            NombreUsuario = usuario.NombreUsuario,
+            Modulo = "Seguridad",
+            Accion = "RecuperacionPassword",
+            Entidad = "Usuario",
+            EntidadId = usuario.Id.ToString(),
+            Resumen = "Contraseña recuperada por enlace de correo.",
+            IpAddress = currentUser.IpAddress
+        });
+        await db.SaveChangesAsync(ct);
+        return Ok(new { mensaje = "Contraseña actualizada. Ya puedes iniciar sesión." });
     }
 
     [HttpPost("refresh")]

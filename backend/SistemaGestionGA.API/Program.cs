@@ -1,4 +1,6 @@
 using System.Text;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using Hangfire;
 using Hangfire.MemoryStorage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -36,6 +38,21 @@ builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<JwtTokenService>();
 builder.Services.AddScoped<IRealtimeNotificationService, RealtimeNotificationService>();
 builder.Services.AddScoped<SlaMonitorJob>();
+builder.Services.AddScoped<IPasswordRecoveryMailer, PasswordRecoveryMailer>();
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy("password-recovery", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(15),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
 
 // Autenticación JWT + soporte SignalR
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "ClaveSecretaCorporativaSistemaGestionGA_2026_SeguridadMaxima_HS256!";
@@ -189,6 +206,7 @@ app.UseSwaggerUI(c =>
 });
 
 app.UseCors("CorporativoCors");
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
