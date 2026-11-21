@@ -6,6 +6,7 @@ public record LoginRequestDto(
     [Required] string Identificador,
     [Required] string Password);
 
+// DTOs del flujo de recuperación de acceso por correo.
 public record SolicitarRecuperacionDto(
     [Required, EmailAddress] string Email);
 
@@ -18,7 +19,7 @@ public record RefreshTokenRequestDto(
 
 public record CambiarPasswordDto(
     [Required] string PasswordActual,
-    [Required, MinLength(8)] string NuevoPassword);
+    [Required, MinLength(12)] string NuevoPassword);
 
 public record UsuarioAutenticadoDto(
     int Id,
@@ -184,7 +185,7 @@ public record ActualizarUsuarioDto(
     IReadOnlyList<int>? EquiposIds);
 
 public record ResetPasswordAdminDto(
-    [Required, MinLength(8)] string NuevoPassword,
+    [Required, MinLength(12)] string NuevoPassword,
     bool DebeCambiarPassword = false);
 
 public record HistorialAccesoDto(
