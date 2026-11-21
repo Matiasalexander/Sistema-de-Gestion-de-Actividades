@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { 
   User, 
   Lock, 
@@ -13,6 +13,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useAuth } from './AuthContext';
+import logo from '../img/gandersons-wlogo.png';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -32,6 +33,13 @@ export const LoginPage: React.FC = () => {
 
   // Ruta a la que se redirigirá tras iniciar sesión
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
+
+  // Si se accede con el enlace de correo con fragmento #reset-password
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash.includes('reset-password')) {
+      navigate(`/recuperar-password${window.location.hash}`, { replace: true });
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,17 +106,9 @@ export const LoginPage: React.FC = () => {
 
         {/* Cabecera & Logotipo */}
         <div className="flex flex-col items-center text-center space-y-4 mb-8">
-          <div className="group relative px-5 py-3 rounded-2xl bg-white/[0.06] border border-white/10 backdrop-blur-md shadow-lg shadow-black/20 flex items-center justify-center transition-all duration-300 hover:bg-white/[0.1] hover:scale-105">
-            <img 
-              src="/assets/ANDERSONS-negro.png" 
-              alt="Grupo Anderson's" 
-              className="h-7 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_8px_rgba(255,255,255,0.25)]"
-              onError={(e) => {
-                (e.target as HTMLElement).style.display = 'none';
-              }}
-            />
-            <span className="text-white font-extrabold tracking-widest text-xs uppercase pl-2 font-mono">
-              GRUPO ANDERSON'S
+        <div>          
+            <span>
+          <img className="logoGA" src={logo} alt="logo"  width='180px' height='180px'/>
             </span>
           </div>
 
@@ -172,12 +172,12 @@ export const LoginPage: React.FC = () => {
               >
                 Contraseña
               </label>
-              <a 
-                href="#forgot" 
+              <Link 
+                to="/recuperar-password" 
                 className="text-[11px] text-blue-400 hover:text-blue-300 hover:underline transition-colors font-medium"
               >
                 ¿Olvidaste tu contraseña?
-              </a>
+              </Link>
             </div>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-blue-300">
