@@ -23,6 +23,7 @@
     <ProjectReference Include="..\..\backend\SistemaGestionGA.Application\SistemaGestionGA.Application.csproj" />
     <ProjectReference Include="..\..\backend\SistemaGestionGA.Infrastructure\SistemaGestionGA.Infrastructure.csproj" />
     <ProjectReference Include="..\..\backend\SistemaGestionGA.Shared\SistemaGestionGA.Shared.csproj" />
+    <ProjectReference Include="..\..\backend\SistemaGestionGA.API\SistemaGestionGA.API.csproj" />
   </ItemGroup>
 
 </Project>

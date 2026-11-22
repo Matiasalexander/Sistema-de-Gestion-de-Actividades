@@ -252,6 +252,62 @@ public class ProyectosController(
         return Ok(new { proyecto.Id, proyecto.Archivado });
     }
 
+    [HttpDelete("{id:int}")]
+    [RequierePermiso(PermisosConstantes.ProyectosEliminar)]
+    public async Task<IActionResult> EliminarProyecto(int id, CancellationToken ct = default)
+    {
+        var proyecto = await db.Proyectos
+            .Include(p => p.Actividades)
+            .Include(p => p.Fases)
+            .Include(p => p.Integrantes)
+            .FirstOrDefaultAsync(p => p.Id == id, ct)
+            ?? throw new DomainRuleException("Proyecto no encontrado.", "NO_ENCONTRADO", 404);
+
+        currentUser.ExigirAlcanceUnidad(proyecto.UnidadId);
+
+        var tieneActividades = proyecto.Actividades.Any(a => !a.Archivada);
+        if (tieneActividades)
+        {
+            proyecto.Archivado = true;
+            proyecto.FechaModificacionUtc = DateTime.UtcNow;
+
+            db.AuditoriaEventos.Add(new AuditoriaEvento
+            {
+                UsuarioId = currentUser.UsuarioId,
+                NombreUsuario = currentUser.NombreUsuario,
+                Modulo = "Proyectos",
+                Accion = "ELIMINAR_PROYECTO_LOGICO",
+                Entidad = "Proyecto",
+                EntidadId = proyecto.Id.ToString(),
+                UnidadId = proyecto.UnidadId,
+                Resumen = $"Archivado del proyecto {proyecto.Codigo} por tener actividades asociadas",
+                IpAddress = currentUser.IpAddress
+            });
+        }
+        else
+        {
+            db.ProyectoIntegrantes.RemoveRange(proyecto.Integrantes);
+            db.ProyectoFases.RemoveRange(proyecto.Fases);
+            db.Proyectos.Remove(proyecto);
+
+            db.AuditoriaEventos.Add(new AuditoriaEvento
+            {
+                UsuarioId = currentUser.UsuarioId,
+                NombreUsuario = currentUser.NombreUsuario,
+                Modulo = "Proyectos",
+                Accion = "ELIMINAR_PROYECTO_FISICO",
+                Entidad = "Proyecto",
+                EntidadId = proyecto.Id.ToString(),
+                UnidadId = proyecto.UnidadId,
+                Resumen = $"Eliminación física del proyecto {proyecto.Codigo}",
+                IpAddress = currentUser.IpAddress
+            });
+        }
+
+        await db.SaveChangesAsync(ct);
+        return Ok(new { id = proyecto.Id, mensaje = "Proyecto eliminado/archivado exitosamente." });
+    }
+
     private static ProyectoDto MapearProyectoDto(Proyecto p)
     {
         var actividadesActivas = p.Actividades.Where(a => !a.Archivada).ToList();
@@ -832,6 +888,81 @@ public class ActividadesController(
         await db.SaveChangesAsync(ct);
     }
 
+    [HttpDelete("{id:int}")]
+    [RequierePermiso(PermisosConstantes.ActividadesEliminar)]
+    public async Task<IActionResult> EliminarActividad(int id, [FromQuery] bool borradoFisico = false, CancellationToken ct = default)
+    {
+        var actividad = await db.Actividades
+            .Include(a => a.Asignados)
+            .Include(a => a.Subtareas)
+            .Include(a => a.Checklists)
+            .Include(a => a.Tiempos)
+            .Include(a => a.Dependencias)
+            .Include(a => a.TicketActividades)
+            .FirstOrDefaultAsync(a => a.Id == id, ct)
+            ?? throw new DomainRuleException("Actividad no encontrada.", "NO_ENCONTRADO", 404);
+
+        currentUser.ExigirAlcanceUnidad(actividad.UnidadId);
+
+        var tieneHistorialCritico = actividad.TicketActividades.Count > 0 || actividad.Tiempos.Count > 0;
+
+        var gruposConEstaActividad = await db.ChatGrupos.Where(g => g.ActividadActivaId == actividad.Id).ToListAsync(ct);
+        foreach (var g in gruposConEstaActividad)
+        {
+            g.ActividadActivaId = null;
+        }
+
+        if (borradoFisico && !tieneHistorialCritico)
+        {
+            db.ActividadAsignados.RemoveRange(actividad.Asignados);
+            db.ActividadChecklists.RemoveRange(actividad.Checklists);
+            db.ActividadDependencias.RemoveRange(actividad.Dependencias);
+            db.Actividades.Remove(actividad);
+
+            db.AuditoriaEventos.Add(new AuditoriaEvento
+            {
+                UsuarioId = currentUser.UsuarioId,
+                NombreUsuario = currentUser.NombreUsuario,
+                Modulo = "Actividades",
+                Accion = "ELIMINAR_ACTIVIDAD_FISICA",
+                Entidad = "Actividad",
+                EntidadId = actividad.Id.ToString(),
+                UnidadId = actividad.UnidadId,
+                Resumen = $"Eliminación física de la actividad {actividad.Codigo} - {actividad.Titulo}",
+                IpAddress = currentUser.IpAddress
+            });
+        }
+        else
+        {
+            actividad.Archivada = true;
+            actividad.FechaModificacionUtc = DateTime.UtcNow;
+            actividad.ModificadoPorId = currentUser.UsuarioId;
+            actividad.ChatGrupoId = null;
+
+            db.AuditoriaEventos.Add(new AuditoriaEvento
+            {
+                UsuarioId = currentUser.UsuarioId,
+                NombreUsuario = currentUser.NombreUsuario,
+                Modulo = "Actividades",
+                Accion = "ELIMINAR_ACTIVIDAD_LOGICA",
+                Entidad = "Actividad",
+                EntidadId = actividad.Id.ToString(),
+                UnidadId = actividad.UnidadId,
+                Resumen = $"Archivado/Eliminación lógica de la actividad {actividad.Codigo} - {actividad.Titulo}",
+                IpAddress = currentUser.IpAddress
+            });
+        }
+
+        await db.SaveChangesAsync(ct);
+
+        if (actividad.ProyectoId.HasValue)
+        {
+            await RecalcularAvanceProyectoAsync(actividad.ProyectoId.Value, ct);
+        }
+
+        return Ok(new { id = actividad.Id, archivada = actividad.Archivada, mensaje = "Actividad eliminada/archivada exitosamente." });
+    }
+
     private IQueryable<Actividad> ConstruirQueryCompleta() =>
         db.Actividades
             .AsNoTracking()
@@ -848,7 +979,8 @@ public class ActividadesController(
             .Include(a => a.Dependencias).ThenInclude(d => d.ActividadPredecesora).ThenInclude(p => p!.EstadoActividad)
             .Include(a => a.Tiempos).ThenInclude(t => t.Usuario)
             .Include(a => a.Historial).ThenInclude(h => h.Usuario)
-            .Include(a => a.TicketActividades).ThenInclude(ta => ta.Ticket);
+            .Include(a => a.TicketActividades).ThenInclude(ta => ta.Ticket)
+            .Include(a => a.ChatGrupo);
 
     private static ActividadDto MapearActividadDto(Actividad a)
     {
@@ -912,7 +1044,9 @@ public class ActividadesController(
             a.Historial.OrderByDescending(h => h.FechaCambioUtc).Select(h => new ActividadHistorialDto(
                 h.Id, h.ActividadId, h.Usuario?.NombreCompleto, h.TipoCambio, h.ValorAnterior,
                 h.ValorNuevo, h.Detalle, h.FechaCambioUtc)).ToList(),
-            a.TicketActividades.Where(ta => ta.Ticket != null).Select(ta => ta.Ticket!.Folio).ToList());
+            a.TicketActividades.Where(ta => ta.Ticket != null).Select(ta => ta.Ticket!.Folio).ToList(),
+            a.ChatGrupoId,
+            a.ChatGrupo?.Nombre);
     }
 }
 

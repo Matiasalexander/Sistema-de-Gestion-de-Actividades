@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Users, Plus, UserCheck } from 'lucide-react';
+import { Users, Plus, UserCheck, Search, X, Check, Building2 } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
 import { apiFetch, EquipoItem, UnidadItem, UsuarioLista } from '../../services/api';
+import { array, boolean } from 'zod/v4';
+import { ModalSeleccionIntegrantes } from './ModalSeleccionIntegrantes';
 
 export const EquiposPage: React.FC = () => {
   const { unidadActivaId, tienePermiso } = useAuth();
@@ -15,6 +17,10 @@ export const EquiposPage: React.FC = () => {
   const [unidadId, setUnidadId] = useState<number>(unidadActivaId || 1);
   const [liderUsuarioId, setLiderUsuarioId] = useState<number | undefined>(undefined);
   const [integrantesIds, setIntegrantesIds] = useState<number[]>([]);
+  //Nuevo estado booleano
+  const [modalIntegrantesAbierto, setModalIntegrantesAbierto] = useState(false);
+  //buscador de usuario
+  const [busquedaUsuario, setBusquedaUsuario] = useState('');
 
   const { data: equipos = [] } = useQuery<EquipoItem[]>({
     queryKey: ['equipos', unidadActivaId],
@@ -29,11 +35,57 @@ export const EquiposPage: React.FC = () => {
     queryFn: () => apiFetch<UnidadItem[]>('/api/unidades'),
   });
 
-  const { data: directorio = [] } = useQuery<UsuarioLista[]>({
-    queryKey: ['directorio'],
-    queryFn: () => apiFetch<UsuarioLista[]>('/api/usuarios/directorio'),
+  //Nuevo directorio de usuarios dinámico
+  const { data: directorio = [], isLoading: cargandoDirectorio } = useQuery<UsuarioLista[]>({
+    queryKey: ['directorio', unidadId],
+    queryFn: () =>
+      apiFetch<UsuarioLista[]>(
+        `/api/usuarios/directorio${unidadId ? `?unidadId=${unidadId}` : ''}`
+      ),
+    enabled: modalAbierto && Boolean(unidadId),
   });
+  
+  //apertura del modal
+  const abrirModalNuevoEquipo = () => {
+    setCodigo(`EQ-${equipos.length + 10}`);
+    setNombre('');
+    setDescripcion('');
+    setUnidadId(unidadActivaId||unidades[0]?.id || 1);
+    setLiderUsuarioId(undefined);
+    setIntegrantesIds([]);
+    setBusquedaUsuario('');
+    setModalAbierto(true);
+  };
 
+  //cambio de unidad
+  const handleCambioUnidad = (nuevaUnidad: number)=> {
+    setUnidadId(nuevaUnidad);
+    setLiderUsuarioId(undefined);
+    setIntegrantesIds([]);
+    setBusquedaUsuario('');
+  };
+  //Filtrar dependiendo de la unidad
+ const usuariosFiltrados = useMemo(() => {
+    if (!busquedaUsuario.trim()) return directorio;
+    const term = busquedaUsuario.toLowerCase().trim();
+    return directorio.filter(
+      (u) =>
+        u.nombreCompleto.toLowerCase().includes(term) ||
+        u.email.toLowerCase().includes(term) ||
+        (u.cargo && u.cargo.toLowerCase().includes(term))
+    );
+  }, [directorio, busquedaUsuario]);
+
+  //selección and deselección masiva
+  const toggleSeleccionarTodos = () => {
+    const idsVisibles = usuariosFiltrados.map((u)=>u.id);
+    const todosVisiblesSeleccionados = idsVisibles.length > 0 && idsVisibles.every((id)=>integrantesIds.includes(id));
+    if (todosVisiblesSeleccionados) {
+      setIntegrantesIds((prev)=>prev.filter((id)=>!idsVisibles.includes(id)));
+    } else {
+      setIntegrantesIds((prev)=>Array.from(new Set([...prev, ...idsVisibles])));
+    }
+  };
   const crearEquipoMutation = useMutation({
     mutationFn: () =>
       apiFetch('/api/equipos', {
@@ -67,14 +119,7 @@ export const EquiposPage: React.FC = () => {
 
         {tienePermiso('equipos.gestionar') && (
           <button
-            onClick={() => {
-              setCodigo(`EQ-${equipos.length + 10}`);
-              setNombre('');
-              setDescripcion('');
-              setUnidadId(unidadActivaId || unidades[0]?.id || 1);
-              setIntegrantesIds([]);
-              setModalAbierto(true);
-            }}
+            onClick={abrirModalNuevoEquipo}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold cursor-pointer"
           >
             <Plus className="w-4 h-4" /> Nuevo Equipo
@@ -148,7 +193,7 @@ export const EquiposPage: React.FC = () => {
                 <label className="block font-semibold mb-1">Unidad de Negocio</label>
                 <select
                   value={unidadId}
-                  onChange={(e) => setUnidadId(Number(e.target.value))}
+                  onChange={(e) => handleCambioUnidad(Number(e.target.value))}
                   className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
                 >
                   {unidades.map((u) => (
@@ -191,25 +236,40 @@ export const EquiposPage: React.FC = () => {
                 ))}
               </select>
             </div>
-            <div>
-              <label className="block font-semibold mb-1">Integrantes</label>
-              <div className="max-h-36 overflow-y-auto space-y-1 p-2 rounded-xl border border-slate-200 dark:border-slate-800">
-                {directorio.map((u) => (
-                  <label key={u.id} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={integrantesIds.includes(u.id)}
-                      onChange={() =>
-                        setIntegrantesIds((prev) =>
-                          prev.includes(u.id) ? prev.filter((x) => x !== u.id) : [...prev, u.id]
-                        )
-                      }
-                    />
-                    <span>{u.nombreCompleto}</span>
-                  </label>
-                ))}
+              {/* Buscador y Selección de Integrantes por Unidad */}
+                        <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block font-semibold">Integrantes del Equipo</label>
+                <button
+                  type="button"
+                  onClick={() => setModalIntegrantesAbierto(true)}
+                  className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 font-semibold cursor-pointer"
+                >
+                  {integrantesIds.length === 0 ? '+ Asignar integrantes' : 'Modificar selección'}
+                </button>
+              </div>
+
+              <div
+                onClick={() => setModalIntegrantesAbierto(true)}
+                className="p-3 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 hover:border-blue-400 cursor-pointer transition-colors"
+              >
+                {integrantesIds.length === 0 ? (
+                  <p className="text-xs text-slate-400 text-center py-2">
+                    Ningún integrante seleccionado. Haz clic para buscar colaboradores de esta sede.
+                  </p>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                      {integrantesIds.length} colaborador{integrantesIds.length > 1 ? 'es' : ''} asignado{integrantesIds.length > 1 ? 's' : ''}
+                    </span>
+                    <span className="text-xs px-2.5 py-1 rounded-lg bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-semibold">
+                      Ver / Editar
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
+
             <div className="flex justify-end gap-2 pt-3">
               <button
                 onClick={() => setModalAbierto(false)}
@@ -227,6 +287,18 @@ export const EquiposPage: React.FC = () => {
           </div>
         </div>
       )}
+            {/* Modal Desacoplado de Integrantes */}
+      <ModalSeleccionIntegrantes
+        abierto={modalIntegrantesAbierto}
+        onCerrar={() => setModalIntegrantesAbierto(false)}
+        unidadId={unidadId}
+        unidadNombre={unidades.find((u) => u.id === unidadId)?.nombre}
+        integrantesSeleccionados={integrantesIds}
+        onConfirmar={(nuevosIds) => setIntegrantesIds(nuevosIds)}
+        liderUsuarioId={liderUsuarioId}
+      />
     </div>
+    
   );
+  
 };

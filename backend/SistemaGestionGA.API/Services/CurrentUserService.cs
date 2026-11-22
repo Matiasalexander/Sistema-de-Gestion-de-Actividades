@@ -19,6 +19,10 @@ public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICur
 
     public string? NombreUsuario => User?.Identity?.Name;
 
+    public string? NombreCompleto => User?.FindFirstValue("nombre_completo") ?? NombreUsuario;
+
+    public string? Email => User?.FindFirstValue(ClaimTypes.Email);
+
     public bool Autenticado => User?.Identity?.IsAuthenticated == true;
 
     public bool AccesoGlobalUnidades =>
@@ -61,6 +65,16 @@ public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICur
     {
         if (!Autenticado)
             return false;
+
+        var esAdmin = (User != null && (
+            User.IsInRole("SUPER_ADMIN") ||
+            User.IsInRole("ADMIN") ||
+            User.FindAll(ClaimTypes.Role).Any(r => string.Equals(r.Value, "SUPER_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                                                   string.Equals(r.Value, "ADMIN", StringComparison.OrdinalIgnoreCase)))) ||
+            AccesoGlobalUnidades;
+
+        if (esAdmin)
+            return true;
 
         return Permisos.Contains(permiso);
     }

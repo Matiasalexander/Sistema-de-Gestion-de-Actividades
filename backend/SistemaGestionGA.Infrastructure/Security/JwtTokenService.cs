@@ -12,7 +12,7 @@ public class JwtTokenService(IConfiguration configuration)
 {
     public (string Token, DateTime ExpiraEnUtc) GenerarAccessToken(UsuarioAutenticadoDto usuario)
     {
-        var secret = configuration["Jwt:Secret"] ?? "ClaveSecretaCorporativaSistemaGestionGA_2026_SeguridadMaxima!";
+        var secret = configuration["Jwt:Secret"] ?? "erDQjML7HkrnBafli9Vz5Sv04NOvz8AGYvty8QNdwvK";
         var issuer = configuration["Jwt:Issuer"] ?? "SistemaGestionGA.API";
         var audience = configuration["Jwt:Audience"] ?? "SistemaGestionGA.Web";
         var minutosExpiracion = int.TryParse(configuration["Jwt:AccessTokenExpirationMinutes"], out var m) ? m : 60;

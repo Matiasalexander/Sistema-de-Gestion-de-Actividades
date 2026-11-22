@@ -14,7 +14,15 @@ public class PermisoAuthorizationHandler : AuthorizationHandler<PermisoRequireme
         AuthorizationHandlerContext context,
         PermisoRequirement requirement)
     {
-        var tienePermiso = context.User.FindAll("permiso")
+        var esAdmin = context.User.IsInRole("SUPER_ADMIN") ||
+                      context.User.IsInRole("ADMIN") ||
+                      context.User.FindAll(System.Security.Claims.ClaimTypes.Role)
+                          .Any(r => string.Equals(r.Value, "SUPER_ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                                    string.Equals(r.Value, "ADMIN", StringComparison.OrdinalIgnoreCase)) ||
+                      string.Equals(context.User.FindFirst("acceso_global")?.Value, "true", StringComparison.OrdinalIgnoreCase) ||
+                      string.Equals(context.User.FindFirst("accesoGlobalUnidades")?.Value, "true", StringComparison.OrdinalIgnoreCase);
+
+        var tienePermiso = esAdmin || context.User.FindAll("permiso")
             .Any(c => string.Equals(c.Value, requirement.Permiso, StringComparison.OrdinalIgnoreCase));
 
         if (tienePermiso)

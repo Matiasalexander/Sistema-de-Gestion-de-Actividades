@@ -258,6 +258,29 @@ public class TicketsController(
         return await TransicionarEstadoTicketAsync(id, "REABIERTO", "Reapertura de ticket", dto, ct);
     }
 
+    [HttpDelete("{id:int}")]
+    [RequierePermiso(PermisosConstantes.TicketsEliminar)]
+    public async Task<ActionResult<TicketDto>> EliminarOCancelarTicket(int id, [FromQuery] string? motivo = null, CancellationToken ct = default)
+    {
+        var dto = new AccionEstadoTicketDto(motivo ?? "Ticket cancelado/eliminado por el administrador");
+        var res = await TransicionarEstadoTicketAsync(id, "CANCELADO", "Cancelación / Eliminación de Ticket", dto, ct);
+
+        db.AuditoriaEventos.Add(new AuditoriaEvento
+        {
+            UsuarioId = currentUser.UsuarioId,
+            NombreUsuario = currentUser.NombreUsuario,
+            Modulo = "Tickets",
+            Accion = "ELIMINAR_TICKET_CANCELACION",
+            Entidad = "Ticket",
+            EntidadId = id.ToString(),
+            Resumen = $"Cancelación/Eliminación del ticket #{id}. Motivo: {dto.Comentario}",
+            IpAddress = currentUser.IpAddress
+        });
+        await db.SaveChangesAsync(ct);
+
+        return res;
+    }
+
     [HttpPost("{id:int}/vincular-actividad")]
     [RequierePermiso(PermisosConstantes.TicketsAtender)]
     public async Task<ActionResult<TicketDto>> VincularActividadTecnica(int id, [FromBody] VincularActividadTicketDto dto, CancellationToken ct)

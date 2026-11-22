@@ -1,206 +1,307 @@
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ShieldCheck, Lock, User, AlertCircle, CheckCircle2, Layers } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { 
+  User, 
+  Lock, 
+  Eye, 
+  EyeOff, 
+  Building2, 
+  ChevronDown, 
+  ArrowRight, 
+  ShieldCheck,
+  Sparkles,
+  AlertCircle
+} from 'lucide-react';
 import { useAuth } from './AuthContext';
+import logo from '../img/gandersons-wlogo.png';
+import video from '../img/video-fondo.mp4'
 
-const loginSchema = z.object({
-  identificador: z.string().min(2, 'Ingrese su usuario o correo corporativo'),
-  password: z.string().min(6, 'Ingrese su contraseña'),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
+import '../styles/LoginPage.css';
 
 export const LoginPage: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
-  const [errorServidor, setErrorServidor] = useState<string | null>(null);
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      identificador: '',
-      password: '',
-    },
-  });
+  // Estados del formulario
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
+  const [businessUnit, setBusinessUnit] = useState('corp');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
 
-  const onSubmit = async (values: LoginFormValues) => {
-    setErrorServidor(null);
+  // Estados de control
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Ruta a la que se redirigirá tras iniciar sesión
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
+
+  // Si se accede con el enlace de correo con fragmento #reset-password
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash.includes('reset-password')) {
+      navigate(`/recuperar-password${window.location.hash}`, { replace: true });
+    }
+  }, [navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage(null);
+
+    const userClean = identifier.trim();
+    if (!userClean || !password.trim()) {
+      setErrorMessage('Por favor ingrese su usuario y contraseña.');
+      return;
+    }
+
     try {
-      await login(values.identificador, values.password);
-    } catch (err: any) {
-      setErrorServidor(err.message || 'No fue posible iniciar sesión.');
+      setIsLoading(true);
+
+      // Invocación flexible compatible con AuthContext
+      if (typeof login === 'function') {
+        try {
+          await (login as any)({
+            username: userClean,
+            email: userClean,
+            password: password,
+            businessUnit: businessUnit,
+            rememberMe: rememberMe
+          });
+        } catch (firstErr: any) {
+          if (firstErr?.name === 'TypeError' || !firstErr?.response) {
+            await (login as any)(userClean, password);
+          } else {
+            throw firstErr;
+          }
+        }
+      }
+
+      // Redirección exitosa
+      navigate(from, { replace: true });
+    } catch (error: any) {
+      console.error('Error de autenticación:', error);
+      const message = 
+        error?.response?.data?.message || 
+        error?.response?.data?.title || 
+        error?.message || 
+        'Credenciales incorrectas o servidor no disponible.';
+      setErrorMessage(message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const usarCuentaDemo = (usuario: string) => {
-    setValue('identificador', usuario);
-    setValue('password', 'AdminGA2026!');
-  };
-
   return (
-    <div className="min-h-screen flex bg-slate-950 text-white">
-      {/* Panel Izquierdo Corporativo */}
-      <div className="hidden lg:flex lg:w-7/12 relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-slate-950 p-12 flex-col justify-between border-r border-slate-800">
-        <div className="relative z-10">
-          <div className="inline-flex items-center gap-3 px-3.5 py-2 rounded-xl bg-blue-500/10 border border-blue-400/20 text-blue-300 text-sm font-medium">
-            <Layers className="w-5 h-5 text-blue-400" />
-            <span>Plataforma Corporativa · Grupo GA</span>
+    
+    <div className="login-wrapper">
+<video
+        src={video}
+        loop
+        autoPlay
+        muted
+        playsInline
+        className="login-video-bg"
+      ></video>
+      {/* Luces orbitales de fondo */}
+      <div className="login-orb login-orb-1" />
+      <div className="login-orb login-orb-2" />
+      <div className="login-orb login-orb-3" />
+
+      {/* Tarjeta principal Glassmorphism */}
+      <div className="login-card">
+
+        {/* Resplandor superior sutil */}
+        <div className="login-card-shine" />
+
+        {/* Cabecera & Logotipo */}
+        <div className="login-header">
+          <div className="login-logo-container">
+            <img className="login-logo" src={logo} alt="Grupo Anderson's Logo" />
           </div>
-          <h1 className="mt-8 text-4xl font-bold tracking-tight text-white leading-tight">
-            Sistema de Gestión GA
-          </h1>
-          <p className="mt-4 text-lg text-slate-300 max-w-xl leading-relaxed">
-            Gestión unificada de portafolio de proyectos, tableros operativos de actividades,
-            mesa de ayuda corporativa y cumplimiento de acuerdos de nivel de servicio (SLA).
-          </p>
+
+          <div className="login-header-text">
+            {
+              /*
+            <div className="login-badge">
+              <Sparkles className="login-badge-icon" />
+              <span>Plataforma Corporativa</span>
+            </div>
+            */
+            }
+            <h1 className="login-title">
+              Sistema de Gestión GA
+            </h1>
+
+          </div>
         </div>
 
-        <div className="relative z-10 grid grid-cols-2 gap-4 my-8">
-          <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800/90 backdrop-blur">
-            <div className="text-blue-400 font-semibold text-sm">Work Management</div>
-            <div className="mt-1 text-base font-medium text-white">Tableros Kanban, Gantt y Carga</div>
-            <p className="mt-1 text-xs text-slate-400">
-              Dependencias sin ciclos, subtareas, checklists, tiempos trabajados y avance automático ponderado.
-            </p>
+        {/* Banner de error */}
+        {errorMessage && (
+          <div className="login-alert">
+            <AlertCircle className="login-alert-icon" />
+            <span className="login-alert-text">{errorMessage}</span>
           </div>
-          <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800/90 backdrop-blur">
-            <div className="text-emerald-400 font-semibold text-sm">Service Desk & SLA</div>
-            <div className="mt-1 text-base font-medium text-white">Mesa de Ayuda y Escalamiento</div>
-            <p className="mt-1 text-xs text-slate-400">
-              Folios únicos, políticas SLA con calendario laboral, pausas controladas y actividades técnicas vinculadas.
-            </p>
-          </div>
-        </div>
+        )}
 
-        <div className="relative z-10 flex items-center justify-between text-xs text-slate-400 border-t border-slate-800/80 pt-6">
-          <span className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            Seguridad RBAC + Aislamiento estricto por Unidad de Negocio
-          </span>
-          <span>v1.0 · ASP.NET Core & SQL Server</span>
-        </div>
-      </div>
-
-      {/* Panel Derecho Formulario */}
-      <div className="w-full lg:w-5/12 flex items-center justify-center p-8 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
-        <div className="w-full max-w-md space-y-6">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">Iniciar sesión corporativa</h2>
-            <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
-              Ingrese sus credenciales para acceder a las unidades autorizadas.
-            </p>
-          </div>
-
-          {errorServidor && (
-            <div
-              role="alert"
-              className="flex items-start gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm"
+        {/* Formulario de Login */}
+        <form onSubmit={handleSubmit} className="login-form">
+          
+          {/* Identificador / Usuario */}
+          <div className="login-field">
+            <label 
+              htmlFor="identifier" 
+              className="login-label"
             >
-              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-              <span>{errorServidor}</span>
+              Usuario o Correo Corporativo
+            </label>
+            <div className="login-input-group">
+              <span className="login-input-icon">
+                <User className="login-icon" />
+              </span>
+              <input
+                id="identifier"
+                name="username"
+                type="text"
+                autoComplete="username"
+                required
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder="correo electrónico *"
+                className="login-input"
+              />
             </div>
-          )}
+          </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-            <div>
-              <label htmlFor="identificador" className="block text-sm font-medium mb-1.5">
-                Usuario o correo electrónico
-              </label>
-              <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                <input
-                  id="identificador"
-                  type="text"
-                  autoComplete="username"
-                  placeholder="admin o correo@corporativoga.mx"
-                  {...register('identificador')}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
-                />
-              </div>
-              {errors.identificador && (
-                <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.identificador.message}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-1.5">
+          {/* Contraseña */}
+          <div className="login-field">
+            <div className="login-field-header">
+              <label 
+                htmlFor="password" 
+                className="login-label"
+              >
                 Contraseña
               </label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                <input
-                  id="password"
-                  type="password"
-                  autoComplete="current-password"
-                  placeholder="••••••••••••"
-                  {...register('password')}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
-                />
-              </div>
-              {errors.password && (
-                <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.password.message}</p>
-              )}
+              <Link 
+                to="/recuperar-password" 
+                className="login-forgot-link"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>
             </div>
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold text-sm shadow-sm transition cursor-pointer"
-            >
-              {isSubmitting ? 'Verificando acceso...' : 'Acceder a la Plataforma'}
-            </button>
-          </form>
-
-          {/* Selector rápido de perfiles semilla para validación de roles y alcance */}
-          <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
-            <div className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2.5">
-              Perfiles de validación preconfigurados (Click para autocompletar)
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="login-input-group">
+              <span className="login-input-icon">
+                <Lock className="login-icon" />
+              </span>
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••••••"
+                className="login-input login-input-password"
+              />
               <button
                 type="button"
-                onClick={() => usarCuentaDemo('admin')}
-                className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-blue-500 text-left transition cursor-pointer"
+                onClick={() => setShowPassword(!showPassword)}
+                className="login-password-toggle"
+                aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
               >
-                <div className="font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> admin
-                </div>
-                <div className="text-slate-500 dark:text-slate-400 truncate">Director TI (Alcance Global)</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => usarCuentaDemo('elena.vargas')}
-                className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-blue-500 text-left transition cursor-pointer"
-              >
-                <div className="font-semibold text-emerald-600 dark:text-emerald-400">elena.vargas</div>
-                <div className="text-slate-500 dark:text-slate-400 truncate">Gerente PMO (Corp + Norte)</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => usarCuentaDemo('carlos.mendez')}
-                className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-blue-500 text-left transition cursor-pointer"
-              >
-                <div className="font-semibold text-amber-600 dark:text-amber-400">carlos.mendez</div>
-                <div className="text-slate-500 dark:text-slate-400 truncate">Mesa de Ayuda (Norte + Corp)</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => usarCuentaDemo('sofia.torres')}
-                className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-blue-500 text-left transition cursor-pointer"
-              >
-                <div className="font-semibold text-purple-600 dark:text-purple-400">sofia.torres</div>
-                <div className="text-slate-500 dark:text-slate-400 truncate">Operativo (Solo Unidad Sur)</div>
+                {showPassword ? <EyeOff className="login-eye" color='#3478F3'/> : <Eye className="login-eye" color='#3478F3
+                ' />}
               </button>
             </div>
           </div>
-        </div>
+
+          {/* Unidad de Negocio */}
+          <div className="login-field">
+            <label 
+              htmlFor="businessUnit" 
+              className="login-label"
+            >
+              Unidad de Negocio / Sucursal
+            </label>
+            <div className="login-input-group">
+              <span className="login-input-icon">
+                <Building2 className="login-icon" />
+              </span>
+              <select
+                id="businessUnit"
+                value={businessUnit}
+                onChange={(e) => setBusinessUnit(e.target.value)}
+                className="login-select"
+              >
+                <option value="corp" className="login-select-option">Grupo Anderson's Corporativo</option>
+                <option value="frogs" className="login-select-option">Señor Frog's</option>
+                <option value="harrys" className="login-select-option">Harry's Steakhouse</option>
+                <option value="charlies" className="login-select-option">Carlos'n Charlie's</option>
+              </select>
+              <span className="login-select-chevron">
+                <ChevronDown className="login-icon" />
+              </span>
+            </div>
+          </div>
+
+          {/* Opciones adicionales */}
+          <div className="login-options">
+            <label className="login-checkbox-label">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="login-checkbox"
+              />
+              <span className="login-checkbox-text">Recordar mi sesión</span>
+            </label>
+          {/*<span className="login-rbac-badge">
+              <ShieldCheck className="login-rbac-icon" />
+              <span>RBAC Activo</span>
+            </span>*/}  
+          </div>
+
+          {/* Botón de Envío */}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="login-submit-btn"
+          >
+            {isLoading ? (
+              <div className="login-spinner" />
+            ) : (
+              <>
+                <span>Iniciar sesión</span>
+              </>
+            )}
+          </button>
+
+          {/* Separador */}
+          <div className="login-divider">
+            <span className="login-divider-line" />
+            <span className="login-divider-text">
+              Acceso Institucional
+            </span>
+          </div>
+
+          {/* SSO Corporativo */}
+          <button
+            type="button"
+            className="login-sso-btn"
+          >
+            <svg className="login-sso-icon" viewBox="0 0 23 23">
+              <path fill="#f35325" d="M1 1h10v10H1z"/>
+              <path fill="#81bc06" d="M12 1h10v10H12z"/>
+              <path fill="#05a6f0" d="M1 12h10v10H1z"/>
+              <path fill="#ffba08" d="M12 12h10v10H12z"/>
+            </svg>
+            <span>Microsoft Active Directory (SSO)</span>
+          </button>
+        </form>
+
       </div>
     </div>
   );
 };
+
+export default LoginPage;

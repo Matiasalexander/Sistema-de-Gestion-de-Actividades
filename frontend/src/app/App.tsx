@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from '../auth/AuthContext';
 import { LoginPage } from '../auth/LoginPage';
+import { PasswordRecoveryPage } from '../auth/PasswordRecoveryPage';
 import { MainLayout } from '../layouts/MainLayout';
 import { DashboardPage } from '../modules/dashboard/DashboardPage';
 import { ProyectosPage } from '../modules/proyectos/ProyectosPage';
@@ -13,6 +14,7 @@ import { EquiposPage } from '../modules/equipos/EquiposPage';
 import { UsuariosPage } from '../modules/usuarios/UsuariosPage';
 import { ReportesPage } from '../modules/reportes/ReportesPage';
 import { ConfiguracionPage } from '../modules/configuracion/ConfiguracionPage';
+import { ChatPage } from '../modules/chat/ChatPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,11 +37,20 @@ const ProtectedRoutes: React.FC = () => {
   }
 
   if (!usuario) {
-    return <LoginPage />;
+    return (
+      <Routes>
+        <Route path="/recuperar-password" element={<PasswordRecoveryPage />} />
+        <Route path="/restablecer-password" element={<PasswordRecoveryPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="*" element={<LoginPage />} />
+      </Routes>
+    );
   }
 
   return (
     <Routes>
+      <Route path="/recuperar-password" element={<PasswordRecoveryPage />} />
+      <Route path="/restablecer-password" element={<PasswordRecoveryPage />} />
       <Route element={<MainLayout />}>
         <Route path="/" element={<DashboardPage />} />
         <Route
@@ -52,6 +63,7 @@ const ProtectedRoutes: React.FC = () => {
             tienePermiso('actividades.ver') ? <ActividadesPage /> : <Navigate to="/" replace />
           }
         />
+        <Route path="/chat" element={<ChatPage />} />
         <Route
           path="/tableros"
           element={tienePermiso('actividades.ver') ? <TablerosPage /> : <Navigate to="/" replace />}

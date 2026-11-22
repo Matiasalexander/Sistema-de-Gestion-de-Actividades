@@ -36,6 +36,9 @@ namespace SistemaGestionGA.Infrastructure.Migrations
                     b.Property<bool>("Archivada")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("ChatGrupoId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Codigo")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -105,6 +108,8 @@ namespace SistemaGestionGA.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ActividadPadreId");
+
+                    b.HasIndex("ChatGrupoId");
 
                     b.HasIndex("Codigo")
                         .IsUnique();
@@ -435,6 +440,121 @@ namespace SistemaGestionGA.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("CalendariosSla");
+                });
+
+            modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ChatGrupo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ActividadActivaId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Descripcion")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("FechaCreacionUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UnidadId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActividadActivaId");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("UnidadId");
+
+                    b.ToTable("ChatGrupos");
+                });
+
+            modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ChatGrupoMiembro", b =>
+                {
+                    b.Property<int>("ChatGrupoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("EsAdmin")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("FechaUnionUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ChatGrupoId", "UsuarioId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("ChatGrupoMiembros");
+                });
+
+            modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ChatMensaje", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int?>("ActividadId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ChatGrupoId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FechaCreacionUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FechaRespuestaUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OpcionSeleccionada")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OpcionesInteractivasJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("RespondidoPorUsuarioId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Texto")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TipoMensaje")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActividadId");
+
+                    b.HasIndex("ChatGrupoId");
+
+                    b.HasIndex("RespondidoPorUsuarioId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("ChatMensajes");
                 });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Comentario", b =>
@@ -1519,7 +1639,7 @@ namespace SistemaGestionGA.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Telefono")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime?>("TokenRecuperacionExpiraUtc")
                         .HasColumnType("datetime2");
@@ -1539,6 +1659,10 @@ namespace SistemaGestionGA.Infrastructure.Migrations
 
                     b.HasIndex("NombreUsuario")
                         .IsUnique();
+
+                    b.HasIndex("Telefono")
+                        .IsUnique()
+                        .HasFilter("[Telefono] IS NOT NULL AND [Telefono] <> ''");
 
                     b.ToTable("Usuarios");
                 });
@@ -1611,6 +1735,11 @@ namespace SistemaGestionGA.Infrastructure.Migrations
                         .HasForeignKey("ActividadPadreId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("SistemaGestionGA.Domain.Entities.ChatGrupo", "ChatGrupo")
+                        .WithMany("Actividades")
+                        .HasForeignKey("ChatGrupoId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("SistemaGestionGA.Domain.Entities.Departamento", "Departamento")
                         .WithMany()
                         .HasForeignKey("DepartamentoId")
@@ -1650,6 +1779,8 @@ namespace SistemaGestionGA.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("ActividadPadre");
+
+                    b.Navigation("ChatGrupo");
 
                     b.Navigation("Departamento");
 
@@ -1789,6 +1920,84 @@ namespace SistemaGestionGA.Infrastructure.Migrations
                     b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ChatGrupo", b =>
+                {
+                    b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "ActividadActiva")
+                        .WithMany()
+                        .HasForeignKey("ActividadActivaId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "CreadoPor")
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SistemaGestionGA.Domain.Entities.Unidad", "Unidad")
+                        .WithMany()
+                        .HasForeignKey("UnidadId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ActividadActiva");
+
+                    b.Navigation("CreadoPor");
+
+                    b.Navigation("Unidad");
+                });
+
+            modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ChatGrupoMiembro", b =>
+                {
+                    b.HasOne("SistemaGestionGA.Domain.Entities.ChatGrupo", "ChatGrupo")
+                        .WithMany("Miembros")
+                        .HasForeignKey("ChatGrupoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ChatGrupo");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ChatMensaje", b =>
+                {
+                    b.HasOne("SistemaGestionGA.Domain.Entities.Actividad", "Actividad")
+                        .WithMany("ChatMensajes")
+                        .HasForeignKey("ActividadId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("SistemaGestionGA.Domain.Entities.ChatGrupo", "ChatGrupo")
+                        .WithMany("Mensajes")
+                        .HasForeignKey("ChatGrupoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "RespondidoPorUsuario")
+                        .WithMany()
+                        .HasForeignKey("RespondidoPorUsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SistemaGestionGA.Domain.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Actividad");
+
+                    b.Navigation("ChatGrupo");
+
+                    b.Navigation("RespondidoPorUsuario");
 
                     b.Navigation("Usuario");
                 });
@@ -2233,6 +2442,8 @@ namespace SistemaGestionGA.Infrastructure.Migrations
 
                     b.Navigation("Asignados");
 
+                    b.Navigation("ChatMensajes");
+
                     b.Navigation("Checklists");
 
                     b.Navigation("Comentarios");
@@ -2251,6 +2462,15 @@ namespace SistemaGestionGA.Infrastructure.Migrations
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.CalendarioSla", b =>
                 {
                     b.Navigation("DiasFestivos");
+                });
+
+            modelBuilder.Entity("SistemaGestionGA.Domain.Entities.ChatGrupo", b =>
+                {
+                    b.Navigation("Actividades");
+
+                    b.Navigation("Mensajes");
+
+                    b.Navigation("Miembros");
                 });
 
             modelBuilder.Entity("SistemaGestionGA.Domain.Entities.Departamento", b =>

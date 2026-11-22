@@ -1,0 +1,643 @@
+/* ==========================================================================
+   Variables y Configuración del Login
+   ========================================================================== */
+.login-wrapper {
+  --login-bg-from: #00162e;
+  --login-bg-via: #000f20;
+  --login-bg-to: #000814;
+
+  --login-card-bg:#222221c4;
+  --login-card-border:  #222221c4;
+  --login-card-border-hover: rgba(255, 255, 255, 0.15);
+  --login-card-radius: 1.5rem;
+
+  --login-primary-start: #2563eb;
+  --login-primary-end: #3b82f6;
+  --login-primary-hover-start: #3b82f6;
+  --login-primary-hover-end: #60a5fa;
+
+  --login-text-primary: #ffffff;
+  --login-text-secondary: rgba(219, 234, 254, 0.7);
+  --login-text-muted: rgba(191, 219, 254, 0.5);
+  --login-label-color: rgba(219, 234, 254, 0.9);
+
+  --login-input-bg: rgba(255, 255, 255, 0.05);
+  --login-input-bg-focus: rgba(255, 255, 255, 0.08);
+  --login-input-border: rgba(255, 255, 255, 0.1);
+  --login-input-border-focus: #60a5fa;
+  --login-input-placeholder: rgba(191, 219, 254, 0.3);
+
+   position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  background-color: var(--login-bg-via);
+  background-image: linear-gradient(to bottom right, var(--login-bg-form), var(--login-bg-via), var(--login-bg-to));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 1rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  font-family:  ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
+}
+
+.login-video-bg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 100%;
+  min-height: 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.login-video-overlay {
+  position: absolute;
+  inset: 0;                 /* top: 0; left: 0; right: 0; bottom: 0; */
+  background: radial-gradient(
+    circle at center,
+    rgba(0, 15, 32, 0.65) 0%,
+    rgba(0, 8, 20, 0.85) 100%
+  );
+  backdrop-filter: blur(2px); /* Suaviza el video para enfocar la vista en el login */
+  z-index: 1;
+  pointer-events: none;
+}
+.login-wrapper * {
+  box-sizing: border-box;
+}
+
+.login-wrapper ::selection {
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+@media (min-width: 640px) {
+  .login-wrapper {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .login-wrapper {
+    padding: 2rem;
+  }
+}
+
+/* ==========================================================================
+   Luces orbitales de fondo
+   ========================================================================== */
+.login-orb,
+.login-orb-1,
+.login-orb-2,
+.login-orb-3 {
+  position: absolute !important;
+  border-radius: 9999px;
+  pointer-events: none;
+  z-index: 1;
+}
+.login-orb-1 {
+  top: 25%;
+  left: -5rem;
+  width: 24rem;
+  height: 24rem;
+  background-color: rgba(37, 99, 235, 0.2);
+  filter: blur(120px);
+}
+.login-orb-2 {
+  bottom: 25%;
+  right: -5rem;
+  width: 24rem;
+  height: 24rem;
+  background-color: rgba(14, 165, 233, 0.15);
+  filter: blur(140px);
+}
+.login-orb-3 {
+  top: -8rem;
+  right: 33.333333%;
+  width: 20rem;
+  height: 20rem;
+  background-color: rgba(96, 165, 250, 0.1);
+  filter: blur(100px);
+}
+
+/* ==========================================================================
+   Tarjeta Glassmorphism
+   ========================================================================== */
+.login-card {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 440px;
+  margin: auto;position: relative;
+  width: 100%;
+  max-width: 440px; 
+  margin: auto;      
+  border-radius: 20px;
+  background-color: var(--login-card-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--login-card-border);
+  box-shadow: 0 25px 60px -15px rgba(0, 15, 32, 0.9);
+  padding: 1.5rem;    /* Padding base optimizado para móviles */
+  overflow: hidden;
+  transition: border-color 0.3s ease;
+  z-index: 10;
+}
+
+.login-card:hover {
+  border-color: var(--login-card-border-hover);
+}
+
+@media (min-width: 640px) {
+  .login-card {
+    padding: 2.25rem;
+  }
+}
+
+.login-card-shine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.3), transparent);
+}
+
+/* ==========================================================================
+   Cabecera & Logotipo
+   ========================================================================== */
+.login-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.login-logo-container {
+  display: flex;
+  justify-content: center;
+}
+
+.login-logo {
+  width: 180px;
+  height: auto;
+  object-fit: contain;
+}
+
+.login-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.login-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  background-color: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(96, 165, 250, 0.2);
+  color: #93c5fd;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.login-badge-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: #93c5fd;
+}
+
+.login-title {
+  margin: 0.25rem 0 0 0;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--login-text-primary);
+  
+  
+}
+
+@media (min-width: 640px) {
+  .login-title {
+    font-size: 1.875rem;
+  }
+}
+
+.login-subtitle {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--login-text-secondary);
+  font-weight: 300;
+  max-width: 20rem;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.4;
+}
+
+/* ==========================================================================
+   Alerta de Error
+   ========================================================================== */
+.login-alert {
+  margin-bottom: 1.25rem;
+  padding: 0.875rem;
+  border-radius: 0.75rem;
+  background-color: rgba(244, 63, 94, 0.1);
+  border: 1px solid rgba(244, 63, 94, 0.25);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  color: #fda4af;
+  font-size: 0.75rem;
+}
+
+.login-alert-icon {
+  width: 1rem;
+  height: 1rem;
+  color: #fb7185;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.login-alert-text {
+  line-height: 1.625;
+}
+
+/* ==========================================================================
+   Formulario y Campos
+   ========================================================================== */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.login-field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.login-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--login-label-color);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.login-forgot-link {
+  font-size: 11px;
+  color: white;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.login-forgot-link:hover {
+  color: #93c5fd;
+  text-decoration: underline;
+}
+
+.login-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.login-input-icon {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  padding-left: 0.875rem;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  color: #93c5fd;
+}
+
+.login-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+
+.login-input,
+.login-select {
+  width: 100%;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  padding-left: 2.5rem;
+  padding-right: 1rem;
+  font-size: 0.75rem;
+  color: #ffffff;
+  border-radius: 0.75rem;
+  background-color: var(--login-input-bg);
+  border: 1px solid var(--login-input-border);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.login-input::placeholder {
+  color: var(--login-input-placeholder);
+}
+
+.login-input:focus,
+.login-select:focus {
+  outline: none;
+  background-color: var(--login-input-bg-focus);
+  border-color: var(--login-input-border-focus);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+.login-input-password {
+  padding-right: 2.5rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.login-password-toggle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  padding-right: 0.875rem;
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  color: var(--login-text-muted);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.login-password-toggle:hover {
+  color: #ffffff;
+}
+
+.login-select {
+  padding-right: 2.5rem;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+}
+
+.login-select-option {
+  background-color: #00162e;
+  color: #ffffff;
+}
+
+.login-select-chevron {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  padding-right: 0.875rem;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  color: var(--login-text-muted);
+}
+
+/* ==========================================================================
+   Opciones de Sesión (Recordar y RBAC)
+   ========================================================================== */
+.login-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;    /* Permite acomodarse si la pantalla es muy estrecha */
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+.login-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.login-checkbox {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  accent-color: #2563eb;
+  cursor: pointer;
+}
+
+.login-checkbox-text {
+  font-size: 0.75rem;
+  color: white;
+  font-weight: 300;
+}
+
+.login-rbac-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 11px;
+  color: rgba(191, 219, 254, 0.7);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.login-rbac-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: #60a5fa;
+}
+
+/* ==========================================================================
+   Botones de Acción
+   ========================================================================== */
+.login-submit-btn {
+  width: 100%;
+  margin-top: 0.5rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(to right, var(--login-primary-start), var(--login-primary-end));
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+  transition: all 0.2s ease;
+}
+
+.login-submit-btn:hover:not(:disabled) {
+  background: linear-gradient(to right, var(--login-primary-hover-start), var(--login-primary-hover-end));
+}
+
+.login-submit-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.login-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login-submit-arrow {
+  width: 1rem;
+  height: 1rem;
+  transition: transform 0.2s ease;
+}
+
+.login-submit-btn:hover:not(:disabled) .login-submit-arrow {
+  transform: translateX(4px);
+}
+
+.login-spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: login-spin 0.8s linear infinite;
+}
+
+@keyframes login-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==========================================================================
+   Separador Institucional
+   ========================================================================== */
+.login-divider {
+  position: relative;
+  padding: 0.5rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-divider-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.login-divider-text {
+  position: relative;
+  background-color: #001328;
+  padding: 0 0.75rem;
+  font-size: 10px;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ==========================================================================
+   Botón SSO Corporativo
+   ========================================================================== */
+.login-sso-btn {
+  width: 100%;
+  padding: 0.625rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgba(219, 234, 254, 0.9);
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.login-sso-btn:hover {
+  background-color: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.login-sso-btn:active {
+  transform: scale(0.99);
+}
+
+.login-sso-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Pie de Página
+   ========================================================================== */
+.login-footer {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;    /* Evita desbordamiento en pantallas pequeñas */
+  gap: 0.5rem;
+  font-size: 11px;
+  color: var(--login-text-muted);
+}
+
+.login-footer-meta {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* ==========================================================================
+   Ajustes para dispositivos muy pequeños (menor a 380px)
+   ========================================================================== */
+@media (max-width: 380px) {
+  .login-card {
+    padding: 1.25rem;
+  }
+
+  .login-logo {
+    width: 140px;
+  }
+
+  .login-title {
+    font-size: 1.25rem;
+  }
+
+  .login-header {
+    margin-bottom: 1.25rem;
+    gap: 0.75rem;
+  }
+}

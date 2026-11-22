@@ -4,6 +4,8 @@ public interface ICurrentUserService
 {
     int? UsuarioId { get; }
     string? NombreUsuario { get; }
+    string? NombreCompleto { get; }
+    string? Email { get; }
     bool Autenticado { get; }
     bool AccesoGlobalUnidades { get; }
     IReadOnlySet<int> UnidadesAutorizadas { get; }

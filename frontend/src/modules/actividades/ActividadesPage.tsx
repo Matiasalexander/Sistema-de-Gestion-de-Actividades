@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Plus,
@@ -11,6 +12,12 @@ import {
   History,
   AlertTriangle,
   X,
+  MessageSquareText,
+  Send,
+  CheckCircle2,
+  HelpCircle,
+  ExternalLink,
+  Trash2,
 } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
 import {
@@ -21,12 +28,16 @@ import {
   ProyectoItem,
   UnidadItem,
   UsuarioLista,
+  ChatMensajeItem,
+  ChatGrupoItem,
+  OpcionInteractiva,
 } from '../../services/api';
 import { StatusBadge } from '../../components/StatusBadge';
 
 export const ActividadesPage: React.FC = () => {
   const { unidadActivaId, tienePermiso, usuario } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [busqueda, setBusqueda] = useState('');
   const [proyectoFiltro, setProyectoFiltro] = useState('');
@@ -34,6 +45,7 @@ export const ActividadesPage: React.FC = () => {
   const [soloMias, setSoloMias] = useState(false);
   const [modalNueva, setModalNueva] = useState(false);
   const [actividadActiva, setActividadActiva] = useState<ActividadItem | null>(null);
+  const [modalEliminarActividad, setModalEliminarActividad] = useState(false);
   const [errorNegocio, setErrorNegocio] = useState<string | null>(null);
 
   // Formulario nueva actividad
@@ -58,6 +70,7 @@ export const ActividadesPage: React.FC = () => {
   const [minutosTrabajo, setMinutosTrabajo] = useState<number>(60);
   const [descTrabajo, setDescTrabajo] = useState('');
   const [nuevoComentario, setNuevoComentario] = useState('');
+  const [nuevoMensajeChat, setNuevoMensajeChat] = useState('');
 
   const { data: actividades = [], isLoading } = useQuery<ActividadItem[]>({
     queryKey: ['actividades', unidadActivaId, proyectoFiltro, estadoFiltro, soloMias, busqueda],
@@ -102,6 +115,13 @@ export const ActividadesPage: React.FC = () => {
     enabled: !!actividadActiva,
   });
 
+  const { data: mensajesChat = [] } = useQuery<ChatMensajeItem[]>({
+    queryKey: ['chat-actividad-mensajes', actividadActiva?.id],
+    queryFn: () => apiFetch<ChatMensajeItem[]>(`/api/chat/actividades/${actividadActiva!.id}/mensajes`),
+    enabled: !!actividadActiva,
+    refetchInterval: 5000,
+  });
+
   const refrescarActividadActiva = async (id: number) => {
     const actualizada = await apiFetch<ActividadItem>(`/api/actividades/${id}`);
     setActividadActiva(actualizada);
@@ -109,6 +129,21 @@ export const ActividadesPage: React.FC = () => {
     queryClient.invalidateQueries({ queryKey: ['proyectos'] });
     queryClient.invalidateQueries({ queryKey: ['dashboard'] });
   };
+
+  const eliminarActividadMutation = useMutation({
+    mutationFn: (id: number) => apiFetch(`/api/actividades/${id}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['actividades'] });
+      queryClient.invalidateQueries({ queryKey: ['proyectos'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      setActividadActiva(null);
+      setModalEliminarActividad(false);
+      setErrorNegocio(null);
+    },
+    onError: (err: Error) => {
+      setErrorNegocio(err.message);
+    },
+  });
 
   const crearActividadMutation = useMutation({
     mutationFn: () =>
@@ -231,6 +266,60 @@ export const ActividadesPage: React.FC = () => {
     onSuccess: () => {
       setNuevoComentario('');
       queryClient.invalidateQueries({ queryKey: ['comentarios-actividad', actividadActiva?.id] });
+    },
+  });
+
+  const enviarMensajeChatMutation = useMutation({
+    mutationFn: (texto: string) => {
+      if (!actividadActiva?.chatGrupoId) throw new Error('No hay grupo de chat vinculado');
+      return apiFetch(`/api/chat/grupos/${actividadActiva.chatGrupoId}/mensajes`, {
+        method: 'POST',
+        body: JSON.stringify({ texto }),
+      });
+    },
+    onSuccess: () => {
+      setNuevoMensajeChat('');
+      queryClient.invalidateQueries({ queryKey: ['chat-actividad-mensajes', actividadActiva?.id] });
+      refrescarActividadActiva(actividadActiva!.id);
+    },
+  });
+
+  const iniciarChatMutation = useMutation({
+    mutationFn: () =>
+      apiFetch<ChatGrupoItem>(`/api/chat/actividades/${actividadActiva!.id}/iniciar-chat`, {
+        method: 'POST',
+      }),
+    onSuccess: () => {
+      refrescarActividadActiva(actividadActiva!.id);
+    },
+  });
+
+  const enviarPreguntaResolucionMutation = useMutation({
+    mutationFn: () => {
+      if (!actividadActiva?.chatGrupoId) throw new Error('No hay grupo de chat vinculado');
+      return apiFetch(`/api/chat/grupos/${actividadActiva.chatGrupoId}/enviar-pregunta-resolucion`, {
+        method: 'POST',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chat-actividad-mensajes', actividadActiva?.id] });
+    },
+  });
+
+  const responderOpcionChatMutation = useMutation({
+    mutationFn: ({ mensajeId, opcionId }: { mensajeId: number; opcionId: string }) => {
+      if (!actividadActiva?.chatGrupoId) throw new Error('No hay grupo de chat vinculado');
+      return apiFetch(
+        `/api/chat/grupos/${actividadActiva.chatGrupoId}/mensajes/${mensajeId}/responder-opcion`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ opcionId }),
+        }
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chat-actividad-mensajes', actividadActiva?.id] });
+      refrescarActividadActiva(actividadActiva!.id);
     },
   });
 
@@ -373,6 +462,14 @@ export const ActividadesPage: React.FC = () => {
                             🎫 {f}
                           </span>
                         ))}
+                        {a.chatGrupoId && (
+                          <span
+                            className="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-semibold flex items-center gap-1"
+                            title={`Chat WhatsApp vinculado: ${a.chatGrupoNombre || ''}`}
+                          >
+                            💬 WhatsApp
+                          </span>
+                        )}
                       </div>
                       <div className="font-semibold text-slate-900 dark:text-slate-100 mt-0.5">
                         {a.titulo}
@@ -464,6 +561,18 @@ export const ActividadesPage: React.FC = () => {
                           <Copy className="w-3.5 h-3.5 inline" />
                         </button>
                       )}
+                      {tienePermiso('actividades.eliminar') && (
+                        <button
+                          onClick={() => {
+                            setActividadActiva(a);
+                            setModalEliminarActividad(true);
+                          }}
+                          title="Eliminar o archivar actividad"
+                          className="p-1.5 rounded-lg border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 inline" />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -493,12 +602,198 @@ export const ActividadesPage: React.FC = () => {
                 <h2 className="text-lg font-bold mt-1">{actividadActiva.titulo}</h2>
                 <p className="text-xs text-slate-500 mt-1">{actividadActiva.descripcion}</p>
               </div>
-              <button
-                onClick={() => setActividadActiva(null)}
-                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                {tienePermiso('actividades.eliminar') && (
+                  <button
+                    onClick={() => setModalEliminarActividad(true)}
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 text-xs font-semibold cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Eliminar
+                  </button>
+                )}
+                <button
+                  onClick={() => setActividadActiva(null)}
+                  className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* SEGUIMIENTO EN VIVO POR CHAT WHATSAPP */}
+            <div className="p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/20 border-2 border-emerald-500/30 space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold shadow-xs">
+                    💬
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                      Seguimiento en Vivo vía Chat WhatsApp
+                      <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 font-semibold">
+                        Sincronizado
+                      </span>
+                    </h3>
+                    {actividadActiva.chatGrupoNombre && (
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        Grupo: <strong>{actividadActiva.chatGrupoNombre}</strong>
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  {actividadActiva.chatGrupoId ? (
+                    <>
+                      <button
+                        onClick={() => enviarPreguntaResolucionMutation.mutate()}
+                        disabled={enviarPreguntaResolucionMutation.isPending}
+                        title="Enviar pregunta interactiva de resolución al cliente"
+                        className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-semibold flex items-center gap-1 shadow-2xs cursor-pointer disabled:opacity-50"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>¿Quedó Resuelto?</span>
+                      </button>
+                      <button
+                        onClick={() => navigate('/chat')}
+                        title="Abrir en pantalla completa de Chat"
+                        className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-semibold flex items-center gap-1 shadow-2xs cursor-pointer"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Ir al Chat</span>
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => iniciarChatMutation.mutate()}
+                      disabled={iniciarChatMutation.isPending}
+                      className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
+                    >
+                      <span>🚀 Iniciar Canal WhatsApp</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {actividadActiva.chatGrupoId ? (
+                <div className="space-y-2.5">
+                  {/* Timeline de mensajes de la actividad */}
+                  <div className="max-h-56 overflow-y-auto space-y-2 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs">
+                    {mensajesChat.length === 0 ? (
+                      <div className="text-center py-4 text-slate-400 text-xs">
+                        Aún no hay mensajes en este chat. Escribe abajo para enviar el primer mensaje.
+                      </div>
+                    ) : (
+                      mensajesChat.map((m) => {
+                        if (m.tipoMensaje === 'Sistema') {
+                          return (
+                            <div key={m.id} className="text-center text-[10px] text-slate-400 py-1">
+                              ⚙️ {m.texto}
+                            </div>
+                          );
+                        }
+
+                        if (m.tipoMensaje === 'PreguntaInteractiva') {
+                          let opciones: OpcionInteractiva[] = [];
+                          try {
+                            if (m.opcionesInteractivasJson) opciones = JSON.parse(m.opcionesInteractivasJson);
+                          } catch {}
+
+                          return (
+                            <div
+                              key={m.id}
+                              className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 space-y-2"
+                            >
+                              <div className="flex items-center gap-1.5 text-amber-800 dark:text-amber-200 font-bold text-[11px]">
+                                <HelpCircle className="w-3.5 h-3.5" />
+                                <span>{m.texto}</span>
+                              </div>
+                              {m.opcionSeleccionada ? (
+                                <div className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
+                                  ✅ Respondido: {m.opcionSeleccionada} por {m.respondidoPorNombre}
+                                </div>
+                              ) : (
+                                <div className="flex gap-2 pt-1">
+                                  {opciones.map((opc) => (
+                                    <button
+                                      key={opc.id}
+                                      onClick={() =>
+                                        responderOpcionChatMutation.mutate({
+                                          mensajeId: m.id,
+                                          opcionId: opc.id,
+                                        })
+                                      }
+                                      className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-semibold cursor-pointer shadow-2xs"
+                                    >
+                                      {opc.texto}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <div
+                            key={m.id}
+                            className={`p-2 rounded-xl text-xs max-w-[90%] ${
+                              m.esMio
+                                ? 'ml-auto bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800'
+                                : 'bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700'
+                            }`}
+                          >
+                            <div className="font-bold text-[10px] text-emerald-700 dark:text-emerald-400">
+                              {m.nombreCompleto}
+                            </div>
+                            <p className="mt-0.5">{m.texto}</p>
+                            <div className="text-[9px] text-slate-400 text-right mt-0.5">
+                              {new Date(m.fechaCreacionUtc).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {/* Input rápido para responder directamente al WhatsApp de la actividad */}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={nuevoMensajeChat}
+                      onChange={(e) => setNuevoMensajeChat(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && nuevoMensajeChat.trim()) {
+                          e.preventDefault();
+                          enviarMensajeChatMutation.mutate(nuevoMensajeChat.trim());
+                        }
+                      }}
+                      placeholder="Escribir mensaje en el chat WhatsApp..."
+                      className="flex-1 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                    />
+                    <button
+                      onClick={() =>
+                        nuevoMensajeChat.trim() &&
+                        enviarMensajeChatMutation.mutate(nuevoMensajeChat.trim())
+                      }
+                      disabled={!nuevoMensajeChat.trim() || enviarMensajeChatMutation.isPending}
+                      className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold flex items-center gap-1 text-xs cursor-pointer disabled:opacity-40"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Enviar</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-xs text-slate-500 dark:text-slate-400 py-1">
+                  Esta actividad aún no tiene un grupo de WhatsApp asociado. Haz clic en "Iniciar Canal
+                  WhatsApp" para habilitar el seguimiento conversacional y la resolución interactiva.
+                </div>
+              )}
             </div>
 
             {/* Checklists interactivos */}
@@ -813,6 +1108,55 @@ export const ActividadesPage: React.FC = () => {
                 className="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold"
               >
                 Guardar Actividad
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CONFIRMAR ELIMINACIÓN DE ACTIVIDAD */}
+      {modalEliminarActividad && actividadActiva && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center font-bold">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                ¿Eliminar actividad?
+              </h3>
+              <p className="text-sm text-slate-500 mt-1">
+                Está a punto de archivar/eliminar la actividad{' '}
+                <strong className="text-slate-900 dark:text-slate-200">
+                  {actividadActiva.codigo}: {actividadActiva.titulo}
+                </strong>
+                .
+              </p>
+              <p className="text-xs text-slate-400 mt-2">
+                Esta acción removerá la actividad del tablero activo y conservará la trazabilidad en la bitácora de auditoría. Si está vinculada a un chat de WhatsApp, se desvinculará automáticamente.
+              </p>
+            </div>
+            {errorNegocio && (
+              <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-xs text-red-600 dark:text-red-400">
+                {errorNegocio}
+              </div>
+            )}
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setModalEliminarActividad(false)}
+                disabled={eliminarActividadMutation.isPending}
+                className="px-4 py-2 rounded-xl text-sm font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => eliminarActividadMutation.mutate(actividadActiva.id)}
+                disabled={eliminarActividadMutation.isPending}
+                className="px-4 py-2 rounded-xl text-sm font-semibold bg-red-600 hover:bg-red-700 text-white cursor-pointer flex items-center gap-1.5"
+              >
+                {eliminarActividadMutation.isPending ? 'Eliminando...' : 'Confirmar eliminación'}
               </button>
             </div>
           </div>

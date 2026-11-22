@@ -1,3 +1,7 @@
+// ==========================================
+// INTERFACES DE MODELO Y AUTENTICACIÓN
+// ==========================================
+
 export interface UnidadResumen {
   id: number;
   codigo: string;
@@ -261,6 +265,8 @@ export interface ActividadItem {
   tiempos: TiempoActividad[];
   historial: ActividadHistorial[];
   ticketsVinculadosFolios: string[];
+  chatGrupoId?: number;
+  chatGrupoNombre?: string;
 }
 
 export interface ComentarioItem {
@@ -454,6 +460,67 @@ export interface HistorialAccesoItem {
   fechaIntentoUtc: string;
 }
 
+export interface ChatMiembroItem {
+  usuarioId: number;
+  nombreCompleto: string;
+  nombreUsuario: string;
+  email: string;
+  cargo?: string;
+  esAdmin: boolean;
+  fechaUnionUtc: string;
+}
+
+export interface ChatGrupoItem {
+  id: number;
+  nombre: string;
+  descripcion?: string;
+  unidadId: number;
+  unidadNombre: string;
+  actividadActivaId?: number;
+  actividadActivaCodigo?: string;
+  actividadActivaTitulo?: string;
+  actividadActivaEstado?: string;
+  actividadActivaEstadoColor?: string;
+  creadoPorId: number;
+  creadoPorNombre: string;
+  fechaCreacionUtc: string;
+  activo: boolean;
+  totalMiembros: number;
+  ultimoMensaje?: string;
+  ultimoMensajeFechaUtc?: string;
+  miembros: ChatMiembroItem[];
+}
+
+export interface OpcionInteractiva {
+  id: string;
+  texto: string;
+  accion: string;
+  color?: string;
+}
+
+export interface ChatMensajeItem {
+  id: number;
+  chatGrupoId: number;
+  usuarioId: number;
+  nombreUsuario: string;
+  nombreCompleto: string;
+  actividadId?: number;
+  actividadCodigo?: string;
+  texto: string;
+  tipoMensaje: string; // 'Texto' | 'Sistema' | 'PreguntaInteractiva' | 'RespuestaInteractiva'
+  opcionesInteractivasJson?: string;
+  opcionSeleccionada?: string;
+  respondidoPorUsuarioId?: number;
+  respondidoPorNombre?: string;
+  fechaRespuestaUtc?: string;
+  fechaCreacionUtc: string;
+  esMio: boolean;
+}
+
+// ==========================================
+// ALMACENAMIENTO DE TOKENS
+// ==========================================
+
 const TOKEN_KEY = 'sga_access_token';
 const REFRESH_KEY = 'sga_refresh_token';
 
@@ -470,6 +537,36 @@ export const tokenStorage = {
   },
 };
 
+// ==========================================
+// RESOLUCIÓN DE URL BASE Y CLIENTE HTTP
+// ==========================================
+
+/**
+ * Acceso seguro a import.meta.env para evitar el error TS2339 en TypeScript
+ */
+interface ViteImportMetaEnv {
+  VITE_API_URL?: string;
+  [key: string]: string | boolean | undefined;
+}
+
+const envSource = (import.meta as unknown as { env?: ViteImportMetaEnv }).env;
+const RAW_API_URL: string = envSource?.VITE_API_URL || '';
+
+export const API_BASE_URL: string = RAW_API_URL.endsWith('/')
+  ? RAW_API_URL.slice(0, -1)
+  : RAW_API_URL;
+
+/**
+ * Construye la URL completa apuntando al backend
+ */
+function buildFullUrl(path: string): string {
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
+  }
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  return `${API_BASE_URL}${cleanPath}`;
+}
+
 export async function apiFetch<T>(
   path: string,
   options: RequestInit = {},
@@ -477,6 +574,7 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const token = tokenStorage.getAccess();
   const headers = new Headers(options.headers || {});
+
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
   }
@@ -484,12 +582,20 @@ export async function apiFetch<T>(
     headers.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(path, { ...options, headers });
+  const targetUrl = buildFullUrl(path);
 
-  if (response.status === 401 && reintento && !path.includes('/api/auth/login') && !path.includes('/api/auth/refresh')) {
+  const response = await fetch(targetUrl, { ...options, headers });
+
+  if (
+    response.status === 401 &&
+    reintento &&
+    !path.includes('/api/auth/login') &&
+    !path.includes('/api/auth/refresh')
+  ) {
     const refreshToken = tokenStorage.getRefresh();
     if (refreshToken) {
-      const refreshResp = await fetch('/api/auth/refresh', {
+      const refreshUrl = buildFullUrl('/api/auth/refresh');
+      const refreshResp = await fetch(refreshUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refreshToken }),
@@ -511,8 +617,9 @@ export async function apiFetch<T>(
       const errJson = await response.json();
       if (errJson.error) errorMsg = errJson.error;
       else if (errJson.title) errorMsg = errJson.title;
+      else if (errJson.message) errorMsg = errJson.message;
     } catch {
-      // ignore parse error
+      // Ignorar error si no es JSON
     }
     throw new Error(errorMsg);
   }
