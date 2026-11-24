@@ -15,8 +15,6 @@ import {
 } from 'lucide-react';
 import { apiFetch } from '../services/api';
 import logo from '../img/gandersons-wlogo.png';
-import video from '../img/video-fondo.mp4'
-
 import '../styles/PasswordRecoveryPage.css';
 
 export const PasswordRecoveryPage: React.FC = () => {
@@ -140,14 +138,7 @@ export const PasswordRecoveryPage: React.FC = () => {
 
   return (
     <div className="recovery-wrapper">
-      <video
-        src={video}
-        loop
-        autoPlay
-        muted
-        playsInline
-        className="login-video-bg"
-      ></video>
+
       {/* Luces orbitales de fondo */}
       <div className="recovery-orb recovery-orb-1" />
       <div className="recovery-orb recovery-orb-2" />
