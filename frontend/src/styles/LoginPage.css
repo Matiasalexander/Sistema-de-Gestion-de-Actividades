@@ -549,6 +549,10 @@
 .login-carousel-dot:hover {
   background-color: rgba(255, 255, 255, 0.7);
 }
+
+.login-carousel-dot.active {
+  width: 24px;
+}
 /*
 .login-carousel-dot.active {
   width: 24px;
