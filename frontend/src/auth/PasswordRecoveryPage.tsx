@@ -21,7 +21,6 @@ export const PasswordRecoveryPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Detección automática del token desde query params (?token=...) o hash (#reset-password?token=...)
   const token = useMemo(() => {
     const searchParams = new URLSearchParams(location.search);
     const tokenFromSearch = searchParams.get('token');
