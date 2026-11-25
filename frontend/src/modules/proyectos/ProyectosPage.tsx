@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  FolderPlus,
-  Calendar,
-  Flag,
   Archive,
   MessageSquare,
   Paperclip,
@@ -20,12 +17,16 @@ import {
   UnidadItem,
   UsuarioLista,
 } from '../../services/api';
-import { StatusBadge } from '../../components/StatusBadge';
+import { ProyectosHeader } from './components/ProyectosHeader';
+import { ProyectoCard } from './components/ProyectoCard';
+import { ProyectosListView } from './components/ProyectosListView';
 
 export const ProyectosPage: React.FC = () => {
   const { unidadActivaId, tienePermiso } = useAuth();
   const queryClient = useQueryClient();
 
+  // Estados de vista y control
+  const [vista, setVista] = useState<'cards' | 'lista'>('cards');
   const [busqueda, setBusqueda] = useState('');
   const [modalAbierto, setModalAbierto] = useState(false);
   const [proyectoDetalle, setProyectoDetalle] = useState<ProyectoItem | null>(null);
@@ -159,99 +160,47 @@ export const ProyectosPage: React.FC = () => {
     queryClient.invalidateQueries({ queryKey: ['adjuntos-proyecto', proyectoDetalle.id] });
   };
 
+  const handleAbrirNuevoProyecto = () => {
+    setCodigo(`PRJ-GA-00${proyectos.length + 1}`);
+    setNombre('');
+    setDescripcion('');
+    setUnidadId(unidadActivaId || unidades[0]?.id || 1);
+    setResponsableId(directorio[0]?.id || 1);
+    setModalAbierto(true);
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Portafolio de Proyectos GA</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Proyectos corporativos y tecnológicos con fases, hitos, evidencias y avance ponderado.
-          </p>
-        </div>
+      {/* Header con switch Cards / Lista */}
+      <ProyectosHeader
+        vista={vista}
+        setVista={setVista}
+        busqueda={busqueda}
+        setBusqueda={setBusqueda}
+        puedeCrear={tienePermiso('proyectos.crear')}
+        onNuevoProyecto={handleAbrirNuevoProyecto}
+      />
 
-        <div className="flex items-center gap-3">
-          <input
-            type="text"
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Filtrar por código o nombre..."
-            className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs"
-          />
-          {tienePermiso('proyectos.crear') && (
-            <button
-              onClick={() => {
-                setCodigo(`PRJ-GA-00${proyectos.length + 1}`);
-                setNombre('');
-                setDescripcion('');
-                setUnidadId(unidadActivaId || unidades[0]?.id || 1);
-                setResponsableId(directorio[0]?.id || 1);
-                setModalAbierto(true);
-              }}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold cursor-pointer"
-            >
-              <FolderPlus className="w-4 h-4" /> Nuevo Proyecto
-            </button>
-          )}
-        </div>
-      </div>
-
+      {/* Contenido condicional: Cards vs Lista */}
       {isLoading ? (
-        <div className="p-8 text-center text-xs text-slate-400">Cargando portafolio de proyectos...</div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div className="p-12 text-center text-xs text-slate-400">
+          Cargando portafolio de proyectos...
+        </div>
+      ) : vista === 'cards' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
           {proyectos.map((p) => (
-            <div
+            <ProyectoCard
               key={p.id}
+              proyecto={p}
               onClick={() => setProyectoDetalle(p)}
-              className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-blue-500/60 transition cursor-pointer space-y-4"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
-                      {p.codigo}
-                    </span>
-                    <span className="text-xs text-slate-400">· {p.unidadNombre}</span>
-                  </div>
-                  <h3 className="mt-1 font-bold text-base leading-snug">{p.nombre}</h3>
-                </div>
-                <div className="flex flex-col items-end gap-1.5 shrink-0">
-                  <StatusBadge label={p.estadoNombre} colorHex={p.estadoColor} />
-                  <StatusBadge label={p.prioridadNombre} colorHex={p.prioridadColor} />
-                </div>
-              </div>
-
-              <p className="text-xs text-slate-500 line-clamp-2">{p.descripcion}</p>
-
-              {/* Barra de avance calculada */}
-              <div>
-                <div className="flex justify-between text-xs mb-1">
-                  <span className="text-slate-500">
-                    Avance ({p.actividadesCompletadas}/{p.totalActividades} actividades)
-                  </span>
-                  <span className="font-bold text-blue-600">{p.porcentajeAvance}%</span>
-                </div>
-                <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-blue-600 rounded-full"
-                    style={{ width: `${Math.min(100, p.porcentajeAvance)}%` }}
-                  />
-                </div>
-              </div>
-
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
-                <span className="flex items-center gap-1.5">
-                  <Flag className="w-3.5 h-3.5 text-slate-400" />
-                  Resp: <strong className="text-slate-700 dark:text-slate-200">{p.responsableNombre}</strong>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                  {p.fechaInicio} → {p.fechaFinEstimada}
-                </span>
-              </div>
-            </div>
+            />
           ))}
         </div>
+      ) : (
+        <ProyectosListView
+          proyectos={proyectos}
+          onSeleccionar={(p) => setProyectoDetalle(p)}
+        />
       )}
 
       {/* PANEL LATERAL DETALLE DE PROYECTO */}
