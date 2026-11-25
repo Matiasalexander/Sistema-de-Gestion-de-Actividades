@@ -22,15 +22,19 @@ import {
   MessageSquareText,
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
+
+import logo from '../img/gandersons-wlogo.png';
+
 import { apiFetch, NotificacionItem, tokenStorage } from '../services/api';
+import '../styles/MainLayout.css';
 
 export const MainLayout: React.FC = () => {
   const { usuario, unidadActivaId, setUnidadActivaId, logout, tienePermiso } = useAuth();
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
-  //controlar el cambio de tema
-  const [modoOscuro, setModoOscuro] = useState(()=>{
+  // controlar el cambio de tema
+  const [modoOscuro, setModoOscuro] = useState(() => {
     const temaGuardado = localStorage.getItem('theme');
-    if (temaGuardado) return temaGuardado==='dark';
+    if (temaGuardado) return temaGuardado === 'dark';
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
@@ -102,33 +106,23 @@ export const MainLayout: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+    <div className="layout-container">
       {/* Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 text-slate-200 flex flex-col border-r border-slate-800 transition-transform lg:static lg:translate-x-0 ${
-          sidebarAbierto ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <div className="h-16 px-5 flex items-center justify-between border-b border-slate-800">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white text-sm">
-              GA
-            </div>
-            <div>
-              <div className="font-bold text-white text-sm leading-none">Sistema Gestión GA</div>
-              <div className="text-[11px] text-slate-400 mt-0.5">Work & Service Management</div>
-            </div>
-          </div>
-          <button
-            onClick={() => setSidebarAbierto(false)}
-            className="lg:hidden text-slate-400 hover:text-white"
-            aria-label="Cerrar menú"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+      <aside className={`sidebar ${sidebarAbierto ? 'sidebar--open' : 'sidebar--closed'}`}>
+        <div className="sidebar-header">
+  <div className="main-logo-container">
+    <img className="main-logo" src={logo} alt="Grupo Anderson's Logo" />
+  </div>
+  <button
+    onClick={() => setSidebarAbierto(false)}
+    className="sidebar-close-btn"
+    aria-label="Cerrar menú"
+  >
+    <X className="sidebar-close-icon" />
+  </button>
+</div>
 
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+        <nav className="sidebar-nav">
           {menuItems
             .filter((item) => item.visible)
             .map((item) => {
@@ -140,29 +134,22 @@ export const MainLayout: React.FC = () => {
                   end={item.to === '/'}
                   onClick={() => setSidebarAbierto(false)}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
-                      isActive
-                        ? 'bg-blue-600 text-white shadow-sm'
-                        : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
-                    }`
+                    `sidebar-nav-item ${isActive ? 'sidebar-nav-item--active' : ''}`
                   }
                 >
-                  <Icon className="w-4 h-4 shrink-0" />
-                  <span>{item.label}</span>
+                  <Icon className="sidebar-nav-icon" />
+                  <span className="sidebar-nav-label">{item.label}</span>
                 </NavLink>
               );
             })}
         </nav>
 
-        <div className="p-4 border-t border-slate-800 bg-slate-900/60">
-          <div className="text-xs font-semibold text-white truncate">{usuario?.nombreCompleto}</div>
-          <div className="text-[11px] text-slate-400 truncate mt-0.5">{usuario?.email}</div>
-          <div className="mt-2 flex flex-wrap gap-1">
+        <div className="sidebar-user">
+          <div className="sidebar-user-name">{usuario?.nombreCompleto}</div>
+          <div className="sidebar-user-email">{usuario?.email}</div>
+          <div className="sidebar-user-roles">
             {usuario?.roles.map((r) => (
-              <span
-                key={r}
-                className="px-2 py-0.5 rounded-md bg-blue-500/15 border border-blue-400/20 text-blue-300 text-[10px] font-medium"
-              >
+              <span key={r} className="sidebar-role-badge">
                 {r}
               </span>
             ))}
@@ -171,22 +158,22 @@ export const MainLayout: React.FC = () => {
       </aside>
 
       {/* Contenedor Principal */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="main-content-wrapper">
         {/* Barra Superior */}
-        <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 lg:px-8 flex items-center justify-between sticky top-0 z-30">
-          <div className="flex items-center gap-3">
+        <header className="header">
+          <div className="header-left">
             <button
               onClick={() => setSidebarAbierto(true)}
-              className="lg:hidden p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="sidebar-menu-btn"
               aria-label="Abrir menú"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="sidebar-menu-icon" />
             </button>
 
             {/* Selector de Alcance de Unidad */}
-            <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
-              <Building2 className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400 hidden sm:inline">
+            <div className="unit-selector">
+              <Building2 className="unit-selector-icon" />
+              <span className="unit-selector-label">
                 Alcance Unidad:
               </span>
               <select
@@ -195,17 +182,17 @@ export const MainLayout: React.FC = () => {
                 onChange={(e) =>
                   setUnidadActivaId(e.target.value ? Number(e.target.value) : undefined)
                 }
-                className="bg-transparent text-xs font-semibold text-slate-800 dark:text-slate-100 focus:outline-none cursor-pointer"
+                className="unit-selector-select"
               >
                 {(usuario?.accesoGlobalUnidades || (usuario?.unidades.length ?? 0) > 1) && (
-                  <option value="" className="bg-white dark:bg-slate-900">
+                  <option value="" className="unit-selector-option">
                     {usuario?.accesoGlobalUnidades
                       ? '🌐 Todas las Unidades (Global)'
                       : 'Todas mis unidades autorizadas'}
                   </option>
                 )}
                 {usuario?.unidades.map((u) => (
-                  <option key={u.id} value={u.id} className="bg-white dark:bg-slate-900">
+                  <option key={u.id} value={u.id} className="unit-selector-option">
                     {u.codigo} · {u.nombre}
                   </option>
                 ))}
@@ -213,61 +200,61 @@ export const MainLayout: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="header-actions">
             {/* Botón Modo Claro / Oscuro */}
             <button
               onClick={() => setModoOscuro(!modoOscuro)}
-              className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+              className="theme-toggle-btn"
               title={modoOscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
               aria-label="Alternar tema visual"
             >
-              {modoOscuro ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
+              {modoOscuro ? <Sun className="theme-icon theme-icon--sun" /> : <Moon className="theme-icon theme-icon--moon" />}
             </button>
 
             {/* Campana de Notificaciones SignalR */}
-            <div className="relative">
+            <div className="notifications-wrapper">
               <button
                 onClick={() => setPanelNotifAbierto(!panelNotifAbierto)}
-                className="relative p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                className="notifications-btn"
                 aria-label="Notificaciones"
               >
-                <Bell className="w-4 h-4" />
+                <Bell className="notifications-icon" />
                 {noLeidas > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center">
+                  <span className="notifications-badge">
                     {noLeidas}
                   </span>
                 )}
               </button>
 
               {panelNotifAbierto && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white dark:bg-slate-900 shadow-xl border border-slate-200 dark:border-slate-800 z-50 overflow-hidden">
-                  <div className="p-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                    <span className="font-semibold text-sm">Centro de Notificaciones</span>
+                <div className="notifications-dropdown">
+                  <div className="notifications-header">
+                    <span className="notifications-title">Centro de Notificaciones</span>
                     {noLeidas > 0 && (
                       <button
                         onClick={marcarTodasLeidas}
-                        className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
+                        className="notifications-read-all-btn"
                       >
-                        <CheckCheck className="w-3.5 h-3.5" /> Marcar leídas
+                        <CheckCheck className="notifications-read-all-icon" /> Marcar leídas
                       </button>
                     )}
                   </div>
-                  <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                  <div className="notifications-list">
                     {notificaciones.length === 0 ? (
-                      <div className="p-6 text-center text-xs text-slate-500">
+                      <div className="notifications-empty">
                         No tienes notificaciones pendientes.
                       </div>
                     ) : (
                       notificaciones.map((n) => (
                         <div
                           key={n.id}
-                          className={`p-3.5 text-xs ${
-                            !n.leida ? 'bg-blue-50/50 dark:bg-blue-950/20' : ''
+                          className={`notification-item ${
+                            !n.leida ? 'notification-item--unread' : ''
                           }`}
                         >
-                          <div className="font-semibold text-slate-800 dark:text-slate-100">{n.titulo}</div>
-                          <div className="text-slate-600 dark:text-slate-400 mt-0.5">{n.mensaje}</div>
-                          <div className="text-[10px] text-slate-400 mt-1">
+                          <div className="notification-title">{n.titulo}</div>
+                          <div className="notification-message">{n.mensaje}</div>
+                          <div className="notification-date">
                             {new Date(n.fechaCreacionUtc).toLocaleString()}
                           </div>
                         </div>
@@ -281,16 +268,16 @@ export const MainLayout: React.FC = () => {
             {/* Cerrar sesión */}
             <button
               onClick={logout}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40 text-xs font-medium transition cursor-pointer"
+              className="logout-btn"
             >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Salir</span>
+              <LogOut className="logout-icon" />
+              <span className="logout-label">Salir</span>
             </button>
           </div>
         </header>
 
         {/* Área de Contenido */}
-        <main className="flex-1 p-4 lg:p-8 overflow-x-hidden">
+        <main className="main-content">
           <Outlet />
         </main>
       </div>
