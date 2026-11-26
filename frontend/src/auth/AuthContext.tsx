@@ -111,3 +111,18 @@ export function useAuth(): AuthContextValue {
   }
   return ctx;
 }
+export const esColaboradorSistemas = (usuario: UsuarioAutenticado | null): boolean => {
+  if (!usuario) return false;
+
+  // Acceso concedido a Administrador General / Acceso Global
+  if (
+    usuario.accesoGlobalUnidades ||
+    usuario.roles.some((r) => r.toUpperCase() === 'SUPER_ADMIN' || r.toUpperCase() === 'ADMIN')
+  ) {
+    return true;
+  }
+
+  // Validación estricta por DEPARTAMENTO DE SISTEMAS
+  const depto = (usuario.departamentoNombre || '').toLowerCase();
+  return depto.includes('sistema') || depto.includes('tecnolog') || depto === 'ti';
+};

@@ -27,13 +27,15 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Proyecto> Proyectos => Set<Proyecto>();
     public DbSet<ProyectoFase> ProyectoFases => Set<ProyectoFase>();
     public DbSet<ProyectoIntegrante> ProyectoIntegrantes => Set<ProyectoIntegrante>();
-
+    //DbSet actividades
     public DbSet<Actividad> Actividades => Set<Actividad>();
     public DbSet<ActividadAsignado> ActividadAsignados => Set<ActividadAsignado>();
     public DbSet<ActividadDependencia> ActividadDependencias => Set<ActividadDependencia>();
     public DbSet<ActividadChecklist> ActividadChecklists => Set<ActividadChecklist>();
     public DbSet<ActividadTiempo> ActividadTiempos => Set<ActividadTiempo>();
     public DbSet<ActividadHistorial> ActividadHistorial => Set<ActividadHistorial>();
+    //DbSetActividadesGuardias
+    public DbSet<ActividadGuardia> ActividadesGuardia => Set<ActividadGuardia>();
 
     public DbSet<TicketCategoria> TicketCategorias => Set<TicketCategoria>();
     public DbSet<TicketTipo> TicketTipos => Set<TicketTipo>();
@@ -263,6 +265,32 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .WithMany()
             .HasForeignKey(x => x.UsuarioId)
             .OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<ActividadGuardia>(entity =>
+        {
+            entity.ToTable("ActividadesGuardia");
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Folio).IsUnique();
+            entity.HasIndex(e => e.Fecha);
+            entity.HasIndex(e => e.UsuarioId);
+            entity.HasIndex(e => e.UnidadId);
+            entity.HasIndex(e => e.DepartamentoId);
+            entity.HasOne(e => e.Usuario)
+                .WithMany()
+                .HasForeignKey(e => e.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Unidad)
+                .WithMany()
+                .HasForeignKey(e => e.UnidadId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Departamento)
+                .WithMany()
+                .HasForeignKey(e => e.DepartamentoId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.TicketRelacionado)
+                .WithMany()
+                .HasForeignKey(e => e.TicketRelacionadoId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
 
         modelBuilder.Entity<PoliticaSla>()
             .HasOne(x => x.Unidad)

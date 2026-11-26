@@ -1,6 +1,59 @@
 // ==========================================
 // INTERFACES DE MODELO Y AUTENTICACIÓN
 // ==========================================
+export interface ActividadGuardiaItem {
+  id: number;
+  folio: string;
+  usuarioId: number;
+  usuarioNombre: string;
+  usuarioEmail: string;
+  unidadId: number;
+  unidadNombre: string;
+  departamentoId?:number;
+  departamentoNomnbre?:string;
+  fecha: string;
+  diaSemana: string;
+  horaInicio: string;
+  horaFin: string;
+  duracionMinutos: number;
+  tipoActividad: string;
+  sistemaAfectado: string;
+  titulo: string;
+  descripcion: string;
+  solucion?:string;
+  estado: string;
+  ticketRelacionadoId?:number;
+  folioTicket?:string;
+  requiereSeguimientoLunes: boolean;
+  detalleSeguimiento?:string;
+  esGuardiaExtraordinaria: boolean;
+  fechaCreacionUtc: string;
+}
+export interface GuardarActividadGuardiaPayload {
+  unidadId: number;
+  fecha: string;
+  horaInicio: string;
+  horaFin: string;
+  tipoActividad: string;
+  sistemaAfectado: string;
+  titulo: string;
+  descripcion: string;
+  solucion?: string;
+  estado: string;
+  ticketRelacionadoId?: number;
+  folioTicketExterno?: string;
+  requiereSeguimientoLunes: boolean;
+  detalleSeguimiento?: string;
+  esGuardiaExtraordinaria: boolean;
+}
+export interface ResumenGuardiasData {
+  totalActividades: number;
+  totalMinutosInvertidos: number;
+  totalPendientesLunes: number;
+  actividadesSabado: number;
+  actividadesDomingo: number;
+  porSistema: { sistema: string; cantidad: number; minutos: number }[];
+}
 
 export interface UnidadResumen {
   id: number;
