@@ -28,6 +28,70 @@ public static class DatabaseInitializer
             Console.WriteLine("Migraciones aplicadas correctamente.");
         }
 
+        // Asegurar existencia de tablas del Módulo de Guardias (Maestro - Detalle)
+        if (db.Database.IsRelational())
+        {
+            try
+            {
+                await db.Database.ExecuteSqlRawAsync(@"
+                    IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Guardias')
+                    BEGIN
+                        CREATE TABLE [dbo].[Guardias] (
+                            [Id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                            [Folio] NVARCHAR(50) NOT NULL UNIQUE,
+                            [UsuarioId] INT NOT NULL,
+                            [UnidadId] INT NOT NULL,
+                            [DepartamentoId] INT NULL,
+                            [Fecha] DATE NOT NULL,
+                            [HoraInicioTurno] TIME NULL,
+                            [HoraFinTurno] TIME NULL,
+                            [Estado] NVARCHAR(30) NOT NULL DEFAULT 'ABIERTA',
+                            [ObservacionesEntrega] NVARCHAR(MAX) NULL,
+                            [EsGuardiaExtraordinaria] BIT NOT NULL DEFAULT 0,
+                            [FechaCreacionUtc] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+                            [FechaCierreUtc] DATETIME2 NULL,
+                            CONSTRAINT [FK_Guardias_Usuarios] FOREIGN KEY ([UsuarioId]) REFERENCES [dbo].[Usuarios]([Id]),
+                            CONSTRAINT [FK_Guardias_Unidades] FOREIGN KEY ([UnidadId]) REFERENCES [dbo].[Unidades]([Id]),
+                            CONSTRAINT [FK_Guardias_Departamentos] FOREIGN KEY ([DepartamentoId]) REFERENCES [dbo].[Departamentos]([Id])
+                        );
+                        CREATE INDEX [IX_Guardias_Fecha] ON [dbo].[Guardias]([Fecha]);
+                        CREATE INDEX [IX_Guardias_UsuarioId] ON [dbo].[Guardias]([UsuarioId]);
+                        CREATE INDEX [IX_Guardias_Estado] ON [dbo].[Guardias]([Estado]);
+                    END;
+
+                    IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'GuardiasActividades')
+                    BEGIN
+                        CREATE TABLE [dbo].[GuardiasActividades] (
+                            [Id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                            [GuardiaId] INT NOT NULL,
+                            [HoraInicio] TIME NOT NULL,
+                            [HoraFin] TIME NOT NULL,
+                            [DuracionMinutos] INT NOT NULL,
+                            [TipoActividad] NVARCHAR(60) NOT NULL,
+                            [Titulo] NVARCHAR(250) NOT NULL,
+                            [Descripcion] NVARCHAR(MAX) NOT NULL,
+                            [Solucion] NVARCHAR(MAX) NULL,
+                            [Estado] NVARCHAR(30) NOT NULL DEFAULT 'COMPLETADA',
+                            [TicketRelacionadoId] INT NULL,
+                            [FolioTicketExterno] NVARCHAR(100) NULL,
+                            [RequiereSeguimientoLunes] BIT NOT NULL DEFAULT 0,
+                            [DetalleSeguimiento] NVARCHAR(MAX) NULL,
+                            [FechaCreacionUtc] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+                            CONSTRAINT [FK_GuardiasActividades_Guardias] FOREIGN KEY ([GuardiaId]) REFERENCES [dbo].[Guardias]([Id]) ON DELETE CASCADE,
+                            CONSTRAINT [FK_GuardiasActividades_Tickets] FOREIGN KEY ([TicketRelacionadoId]) REFERENCES [dbo].[Tickets]([Id]) ON DELETE SET NULL
+                        );
+                        CREATE INDEX [IX_GuardiasActividades_GuardiaId] ON [dbo].[GuardiasActividades]([GuardiaId]);
+                        CREATE INDEX [IX_GuardiasActividades_SeguimientoLunes] ON [dbo].[GuardiasActividades]([RequiereSeguimientoLunes]);
+                    END;
+                ");
+                Console.WriteLine("Tablas de Guardias verificadas / aseguradas correctamente.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Aviso inicializador Guardias: {ex.Message}");
+            }
+        }
+
         // 1. Semilla de Permisos
         var catalogoPermisos = PermisosConstantes.ObtenerCatalogo();
         var permisosExistentes = await db.Permisos.ToDictionaryAsync(p => p.Codigo, StringComparer.OrdinalIgnoreCase);

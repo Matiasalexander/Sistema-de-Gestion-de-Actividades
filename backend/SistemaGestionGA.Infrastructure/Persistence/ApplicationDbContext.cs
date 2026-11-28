@@ -35,7 +35,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<ActividadTiempo> ActividadTiempos => Set<ActividadTiempo>();
     public DbSet<ActividadHistorial> ActividadHistorial => Set<ActividadHistorial>();
     //DbSetActividadesGuardias
-    public DbSet<ActividadGuardia> ActividadesGuardia => Set<ActividadGuardia>();
+    public DbSet<Guardia> Guardias => Set<Guardia>();
+    public DbSet<GuardiaActividad> GuardiasActividades => Set<GuardiaActividad>();
 
     public DbSet<TicketCategoria> TicketCategorias => Set<TicketCategoria>();
     public DbSet<TicketTipo> TicketTipos => Set<TicketTipo>();
@@ -265,15 +266,14 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .WithMany()
             .HasForeignKey(x => x.UsuarioId)
             .OnDelete(DeleteBehavior.Restrict);
-        modelBuilder.Entity<ActividadGuardia>(entity =>
+        modelBuilder.Entity<Guardia>(entity =>
         {
-            entity.ToTable("ActividadesGuardia");
+            entity.ToTable("Guardias");
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.Folio).IsUnique();
             entity.HasIndex(e => e.Fecha);
             entity.HasIndex(e => e.UsuarioId);
-            entity.HasIndex(e => e.UnidadId);
-            entity.HasIndex(e => e.DepartamentoId);
+            entity.HasIndex(e => e.Estado);
             entity.HasOne(e => e.Usuario)
                 .WithMany()
                 .HasForeignKey(e => e.UsuarioId)
@@ -286,6 +286,18 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .WithMany()
                 .HasForeignKey(e => e.DepartamentoId)
                 .OnDelete(DeleteBehavior.Restrict);
+            entity.HasMany(e => e.Actividades)
+                .WithOne(e => e.Guardia)
+                .HasForeignKey(e => e.GuardiaId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<GuardiaActividad>(entity =>
+        {
+            entity.ToTable("GuardiasActividades");
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.GuardiaId);
+            entity.HasIndex(e => e.RequiereSeguimientoLunes);
             entity.HasOne(e => e.TicketRelacionado)
                 .WithMany()
                 .HasForeignKey(e => e.TicketRelacionadoId)

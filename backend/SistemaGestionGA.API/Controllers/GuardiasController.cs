@@ -16,7 +16,6 @@ public class GuardiasController(
     ApplicationDbContext db,
     ICurrentUserService currentUser) : ControllerBase
 {
-
     private async Task<Usuario> ValidarAccesoDepartamentoSistemasAsync(CancellationToken ct)
     {
         var userId = currentUser.UsuarioId ?? throw new DomainRuleException("Sesión no válida.", "NO_AUTENTICADO", 401);
@@ -51,112 +50,156 @@ public class GuardiasController(
         return usuario;
     }
 
+    // ==========================================
+    // ENDPOINTS DE GUARDIA (CABECERA / TURNO)
+    // ==========================================
+
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<ActividadGuardiaDto>>> Listar(
+    public async Task<ActionResult<IReadOnlyList<GuardiaDto>>> Listar(
         [FromQuery] DateOnly? fechaInicio,
         [FromQuery] DateOnly? fechaFin,
-        [FromQuery] int? unidadId,
-        [FromQuery] int? usuarioId,
-        [FromQuery] string? tipoActividad,
+        [FromQuery] string? estado,
         [FromQuery] bool? soloPendientesLunes,
-        [FromQuery] string? busqueda,
         CancellationToken ct)
     {
         await ValidarAccesoDepartamentoSistemasAsync(ct);
 
-        var query = db.ActividadesGuardia
+        var query = db.Guardias
             .AsNoTracking()
             .Include(g => g.Usuario)
             .Include(g => g.Unidad)
             .Include(g => g.Departamento)
-            .Include(g => g.TicketRelacionado)
+            .Include(g => g.Actividades)
             .AsQueryable();
 
         if (fechaInicio.HasValue) query = query.Where(g => g.Fecha >= fechaInicio.Value);
         if (fechaFin.HasValue) query = query.Where(g => g.Fecha <= fechaFin.Value);
-        if (unidadId.HasValue) query = query.Where(g => g.UnidadId == unidadId.Value);
-        if (usuarioId.HasValue) query = query.Where(g => g.UsuarioId == usuarioId.Value);
-        if (!string.IsNullOrWhiteSpace(tipoActividad)) query = query.Where(g => g.TipoActividad == tipoActividad);
-        if (soloPendientesLunes == true) query = query.Where(g => g.RequiereSeguimientoLunes);
+        if (!string.IsNullOrWhiteSpace(estado)) query = query.Where(g => g.Estado == estado);
+        if (soloPendientesLunes == true) query = query.Where(g => g.Actividades.Any(a => a.RequiereSeguimientoLunes));
 
-        if (!string.IsNullOrWhiteSpace(busqueda))
-        {
-            var b = busqueda.Trim().ToLower();
-            query = query.Where(g => g.Titulo.ToLower().Contains(b) ||
-                                     g.Descripcion.ToLower().Contains(b) ||
-                                     g.Folio.ToLower().Contains(b) ||
-                                     g.SistemaAfectado.ToLower().Contains(b));
-        }
-
-        var lista = await query.OrderByDescending(g => g.Fecha).ThenByDescending(g => g.HoraInicio).ToListAsync(ct);
-        return Ok(lista.Select(MapearDto).ToList());
+        var lista = await query.OrderByDescending(g => g.Fecha).ToListAsync(ct);
+        return Ok(lista.Select(g => MapearGuardiaDto(g, incluirActividades: false)).ToList());
     }
 
-    [HttpGet("resumen")]
-    public async Task<ActionResult<ResumenGuardiasDto>> ObtenerResumen(
-        [FromQuery] DateOnly? fechaInicio,
-        [FromQuery] DateOnly? fechaFin,
-        CancellationToken ct)
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<GuardiaDto>> ObtenerPorId(int id, CancellationToken ct)
     {
         await ValidarAccesoDepartamentoSistemasAsync(ct);
 
-        var query = db.ActividadesGuardia.AsNoTracking();
-        if (fechaInicio.HasValue) query = query.Where(g => g.Fecha >= fechaInicio.Value);
-        if (fechaFin.HasValue) query = query.Where(g => g.Fecha <= fechaFin.Value);
+        var guardia = await db.Guardias
+            .AsNoTracking()
+            .Include(g => g.Usuario)
+            .Include(g => g.Unidad)
+            .Include(g => g.Departamento)
+            .Include(g => g.Actividades).ThenInclude(a => a.TicketRelacionado)
+            .FirstOrDefaultAsync(g => g.Id == id, ct)
+            ?? throw new DomainRuleException("Guardia no encontrada.", "NO_ENCONTRADO", 404);
 
-        var items = await query.ToListAsync(ct);
-
-        var totalActividades = items.Count;
-        var totalMinutos = items.Sum(x => x.DuracionMinutos);
-        var pendientesLunes = items.Count(x => x.RequiereSeguimientoLunes);
-        var sabados = items.Count(x => x.Fecha.DayOfWeek == DayOfWeek.Saturday);
-        var domingos = items.Count(x => x.Fecha.DayOfWeek == DayOfWeek.Sunday);
-
-        var porSistema = items
-            .GroupBy(x => x.SistemaAfectado)
-            .Select(g => new DesgloseSistemaDto(g.Key, g.Count(), g.Sum(x => x.DuracionMinutos)))
-            .OrderByDescending(x => x.Cantidad)
-            .ToList();
-
-        return Ok(new ResumenGuardiasDto(totalActividades, totalMinutos, pendientesLunes, sabados, domingos, porSistema));
+        return Ok(MapearGuardiaDto(guardia, incluirActividades: true));
     }
 
     [HttpPost]
-    public async Task<ActionResult<ActividadGuardiaDto>> Crear([FromBody] GuardarActividadGuardiaDto dto, CancellationToken ct)
+    public async Task<ActionResult<GuardiaDto>> IniciarGuardia([FromBody] CrearGuardiaDto dto, CancellationToken ct)
     {
-        var usuarioActual = await ValidarAccesoDepartamentoSistemasAsync(ct);
+        var usuario = await ValidarAccesoDepartamentoSistemasAsync(ct);
 
         var diaSemana = dto.Fecha.DayOfWeek;
         var esFinDeSemana = diaSemana == DayOfWeek.Saturday || diaSemana == DayOfWeek.Sunday;
         if (!esFinDeSemana && !dto.EsGuardiaExtraordinaria)
         {
-            throw new DomainRuleException("La fecha de guardia debe ser un sábado o domingo, a menos que se marque como guardia extraordinaria.", "FECHA_INVALIDA", 400);
+            throw new DomainRuleException("La fecha debe ser un sábado o domingo, a menos que se indique como guardia extraordinaria.", "FECHA_INVALIDA", 400);
         }
 
-        if (dto.HoraFin < dto.HoraInicio)
-        {
-            throw new DomainRuleException("La hora de finalización no puede ser anterior a la hora de inicio.", "HORA_INVALIDA", 400);
-        }
-
-        var duracionMinutos = (int)(dto.HoraFin.ToTimeSpan() - dto.HoraInicio.ToTimeSpan()).TotalMinutes;
-
-        // Generar folio consecutivo: GUA-yyyyMMdd-XXX
         var prefijo = $"GUA-{dto.Fecha:yyyyMMdd}";
-        var conteoHoy = await db.ActividadesGuardia.CountAsync(g => g.Folio.StartsWith(prefijo), ct);
+        var conteoHoy = await db.Guardias.CountAsync(g => g.Folio.StartsWith(prefijo), ct);
         var folio = $"{prefijo}-{(conteoHoy + 1):D3}";
 
-        var nueva = new ActividadGuardia
+        var nuevaGuardia = new Guardia
         {
             Folio = folio,
-            UsuarioId = usuarioActual.Id,
+            UsuarioId = usuario.Id,
             UnidadId = dto.UnidadId,
-            DepartamentoId = usuarioActual.DepartamentoId,
+            DepartamentoId = usuario.DepartamentoId,
             Fecha = dto.Fecha,
+            HoraInicioTurno = dto.HoraInicioTurno ?? TimeOnly.FromDateTime(DateTime.Now),
+            HoraFinTurno = dto.HoraFinTurno,
+            Estado = "ABIERTA",
+            ObservacionesEntrega = dto.ObservacionesEntrega?.Trim(),
+            EsGuardiaExtraordinaria = dto.EsGuardiaExtraordinaria,
+            FechaCreacionUtc = DateTime.UtcNow
+        };
+
+        db.Guardias.Add(nuevaGuardia);
+        await db.SaveChangesAsync(ct);
+
+        await db.Entry(nuevaGuardia).Reference(g => g.Usuario).LoadAsync(ct);
+        await db.Entry(nuevaGuardia).Reference(g => g.Unidad).LoadAsync(ct);
+
+        return CreatedAtAction(nameof(ObtenerPorId), new { id = nuevaGuardia.Id }, MapearGuardiaDto(nuevaGuardia, false));
+    }
+
+    [HttpPut("{id:int}/cerrar")]
+    public async Task<ActionResult<GuardiaDto>> CerrarGuardia(int id, [FromBody] CerrarGuardiaDto dto, CancellationToken ct)
+    {
+        await ValidarAccesoDepartamentoSistemasAsync(ct);
+
+        var guardia = await db.Guardias
+            .Include(g => g.Usuario)
+            .Include(g => g.Unidad)
+            .Include(g => g.Actividades)
+            .FirstOrDefaultAsync(g => g.Id == id, ct)
+            ?? throw new DomainRuleException("Guardia no encontrada.", "NO_ENCONTRADO", 404);
+
+        guardia.Estado = "CERRADA";
+        guardia.HoraFinTurno = dto.HoraFinTurno ?? TimeOnly.FromDateTime(DateTime.Now);
+        guardia.ObservacionesEntrega = dto.ObservacionesEntrega?.Trim();
+        guardia.FechaCierreUtc = DateTime.UtcNow;
+
+        await db.SaveChangesAsync(ct);
+        return Ok(MapearGuardiaDto(guardia, true));
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> EliminarGuardia(int id, CancellationToken ct)
+    {
+        await ValidarAccesoDepartamentoSistemasAsync(ct);
+
+        var guardia = await db.Guardias.FindAsync([id], ct)
+            ?? throw new DomainRuleException("Guardia no encontrada.", "NO_ENCONTRADO", 404);
+
+        db.Guardias.Remove(guardia);
+        await db.SaveChangesAsync(ct);
+        return NoContent();
+    }
+
+    // ==========================================
+    // ENDPOINTS DE ACTIVIDADES (DETALLE DEL DÍA)
+    // ==========================================
+
+    [HttpPost("{guardiaId:int}/actividades")]
+    public async Task<ActionResult<GuardiaActividadDto>> AgregarActividad(
+        int guardiaId,
+        [FromBody] GuardarGuardiaActividadDto dto,
+        CancellationToken ct)
+    {
+        await ValidarAccesoDepartamentoSistemasAsync(ct);
+
+        var guardia = await db.Guardias.FindAsync([guardiaId], ct)
+            ?? throw new DomainRuleException("Guardia no encontrada.", "NO_ENCONTRADO", 404);
+
+        var duracionMinutos = (int)(dto.HoraFin.ToTimeSpan() - dto.HoraInicio.ToTimeSpan()).TotalMinutes;
+        if (duracionMinutos < 0)
+        {
+            throw new DomainRuleException("La hora final no puede ser menor a la hora inicial.", "HORA_INVALIDA", 400);
+        }
+
+        var actividad = new GuardiaActividad
+        {
+            GuardiaId = guardiaId,
             HoraInicio = dto.HoraInicio,
             HoraFin = dto.HoraFin,
             DuracionMinutos = duracionMinutos,
             TipoActividad = dto.TipoActividad.Trim(),
-            SistemaAfectado = dto.SistemaAfectado.Trim(),
             Titulo = dto.Titulo.Trim(),
             Descripcion = dto.Descripcion.Trim(),
             Solucion = dto.Solucion?.Trim(),
@@ -165,104 +208,112 @@ public class GuardiasController(
             FolioTicketExterno = dto.FolioTicketExterno?.Trim(),
             RequiereSeguimientoLunes = dto.RequiereSeguimientoLunes,
             DetalleSeguimiento = dto.DetalleSeguimiento?.Trim(),
-            EsGuardiaExtraordinaria = dto.EsGuardiaExtraordinaria,
             FechaCreacionUtc = DateTime.UtcNow
         };
 
-        db.ActividadesGuardia.Add(nueva);
+        db.GuardiasActividades.Add(actividad);
         await db.SaveChangesAsync(ct);
 
-        await db.Entry(nueva).Reference(x => x.Usuario).LoadAsync(ct);
-        await db.Entry(nueva).Reference(x => x.Unidad).LoadAsync(ct);
-        await db.Entry(nueva).Reference(x => x.Departamento).LoadAsync(ct);
-
-        return CreatedAtAction(nameof(Listar), new { id = nueva.Id }, MapearDto(nueva));
+        return Ok(MapearActividadDto(actividad));
     }
 
-    [HttpPut("{id:int}")]
-    public async Task<ActionResult<ActividadGuardiaDto>> Actualizar(int id, [FromBody] GuardarActividadGuardiaDto dto, CancellationToken ct)
+    [HttpPut("{guardiaId:int}/actividades/{actividadId:int}")]
+    public async Task<ActionResult<GuardiaActividadDto>> ActualizarActividad(
+        int guardiaId,
+        int actividadId,
+        [FromBody] GuardarGuardiaActividadDto dto,
+        CancellationToken ct)
     {
         await ValidarAccesoDepartamentoSistemasAsync(ct);
 
-        var entidad = await db.ActividadesGuardia
-            .Include(x => x.Usuario)
-            .Include(x => x.Unidad)
-            .Include(x => x.Departamento)
-            .Include(x => x.TicketRelacionado)
-            .FirstOrDefaultAsync(x => x.Id == id, ct)
-            ?? throw new DomainRuleException("Registro de guardia no encontrado.", "NO_ENCONTRADO", 404);
-
-        var diaSemana = dto.Fecha.DayOfWeek;
-        var esFinDeSemana = diaSemana == DayOfWeek.Saturday || diaSemana == DayOfWeek.Sunday;
-        if (!esFinDeSemana && !dto.EsGuardiaExtraordinaria)
-        {
-            throw new DomainRuleException("La fecha debe corresponder a un sábado o domingo.", "FECHA_INVALIDA", 400);
-        }
+        var actividad = await db.GuardiasActividades
+            .FirstOrDefaultAsync(a => a.Id == actividadId && a.GuardiaId == guardiaId, ct)
+            ?? throw new DomainRuleException("Actividad no encontrada en esta guardia.", "NO_ENCONTRADO", 404);
 
         var duracionMinutos = (int)(dto.HoraFin.ToTimeSpan() - dto.HoraInicio.ToTimeSpan()).TotalMinutes;
 
-        entidad.UnidadId = dto.UnidadId;
-        entidad.Fecha = dto.Fecha;
-        entidad.HoraInicio = dto.HoraInicio;
-        entidad.HoraFin = dto.HoraFin;
-        entidad.DuracionMinutos = duracionMinutos;
-        entidad.TipoActividad = dto.TipoActividad.Trim();
-        entidad.SistemaAfectado = dto.SistemaAfectado.Trim();
-        entidad.Titulo = dto.Titulo.Trim();
-        entidad.Descripcion = dto.Descripcion.Trim();
-        entidad.Solucion = dto.Solucion?.Trim();
-        entidad.Estado = dto.Estado.Trim();
-        entidad.TicketRelacionadoId = dto.TicketRelacionadoId;
-        entidad.FolioTicketExterno = dto.FolioTicketExterno?.Trim();
-        entidad.RequiereSeguimientoLunes = dto.RequiereSeguimientoLunes;
-        entidad.DetalleSeguimiento = dto.DetalleSeguimiento?.Trim();
-        entidad.EsGuardiaExtraordinaria = dto.EsGuardiaExtraordinaria;
-        entidad.FechaModificacionUtc = DateTime.UtcNow;
+        actividad.HoraInicio = dto.HoraInicio;
+        actividad.HoraFin = dto.HoraFin;
+        actividad.DuracionMinutos = duracionMinutos;
+        actividad.TipoActividad = dto.TipoActividad.Trim();
+        actividad.Titulo = dto.Titulo.Trim();
+        actividad.Descripcion = dto.Descripcion.Trim();
+        actividad.Solucion = dto.Solucion?.Trim();
+        actividad.Estado = dto.Estado.Trim();
+        actividad.TicketRelacionadoId = dto.TicketRelacionadoId;
+        actividad.FolioTicketExterno = dto.FolioTicketExterno?.Trim();
+        actividad.RequiereSeguimientoLunes = dto.RequiereSeguimientoLunes;
+        actividad.DetalleSeguimiento = dto.DetalleSeguimiento?.Trim();
 
         await db.SaveChangesAsync(ct);
-        return Ok(MapearDto(entidad));
+        return Ok(MapearActividadDto(actividad));
     }
 
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Eliminar(int id, CancellationToken ct)
+    [HttpDelete("{guardiaId:int}/actividades/{actividadId:int}")]
+    public async Task<IActionResult> EliminarActividad(int guardiaId, int actividadId, CancellationToken ct)
     {
         await ValidarAccesoDepartamentoSistemasAsync(ct);
 
-        var entidad = await db.ActividadesGuardia.FindAsync([id], ct)
-            ?? throw new DomainRuleException("Registro de guardia no encontrado.", "NO_ENCONTRADO", 404);
+        var actividad = await db.GuardiasActividades
+            .FirstOrDefaultAsync(a => a.Id == actividadId && a.GuardiaId == guardiaId, ct)
+            ?? throw new DomainRuleException("Actividad no encontrada.", "NO_ENCONTRADO", 404);
 
-        db.ActividadesGuardia.Remove(entidad);
+        db.GuardiasActividades.Remove(actividad);
         await db.SaveChangesAsync(ct);
         return NoContent();
     }
 
-    private static ActividadGuardiaDto MapearDto(ActividadGuardia g) =>
-        new(
+    // ==========================================
+    // HELPERS DE MAPEO
+    // ==========================================
+
+    private static GuardiaDto MapearGuardiaDto(Guardia g, bool incluirActividades)
+    {
+        var totalMin = g.Actividades.Sum(a => a.DuracionMinutos);
+        var pendientes = g.Actividades.Any(a => a.RequiereSeguimientoLunes);
+        var dia = g.Fecha.DayOfWeek == DayOfWeek.Saturday ? "Sábado" : g.Fecha.DayOfWeek == DayOfWeek.Sunday ? "Domingo" : "Extraordinaria";
+
+        return new GuardiaDto(
             g.Id,
             g.Folio,
             g.UsuarioId,
-            g.Usuario?.NombreCompleto ?? "Colaborador de Sistemas",
+            g.Usuario?.NombreCompleto ?? "Colaborador",
             g.Usuario?.Email ?? "",
             g.UnidadId,
             g.Unidad?.Nombre ?? "Unidad General",
             g.DepartamentoId,
             g.Departamento?.Nombre,
             g.Fecha,
-            g.Fecha.DayOfWeek == DayOfWeek.Saturday ? "Sábado" : g.Fecha.DayOfWeek == DayOfWeek.Sunday ? "Domingo" : "Entre Semana",
-            g.HoraInicio,
-            g.HoraFin,
-            g.DuracionMinutos,
-            g.TipoActividad,
-            g.SistemaAfectado,
-            g.Titulo,
-            g.Descripcion,
-            g.Solucion,
+            dia,
+            g.HoraInicioTurno,
+            g.HoraFinTurno,
             g.Estado,
-            g.TicketRelacionadoId,
-            g.TicketRelacionado?.Folio ?? g.FolioTicketExterno,
-            g.RequiereSeguimientoLunes,
-            g.DetalleSeguimiento,
+            g.ObservacionesEntrega,
             g.EsGuardiaExtraordinaria,
-            g.FechaCreacionUtc
+            g.Actividades.Count,
+            totalMin,
+            pendientes,
+            g.FechaCreacionUtc,
+            incluirActividades ? g.Actividades.Select(MapearActividadDto).ToList() : null
+        );
+    }
+
+    private static GuardiaActividadDto MapearActividadDto(GuardiaActividad a) =>
+        new(
+            a.Id,
+            a.GuardiaId,
+            a.HoraInicio,
+            a.HoraFin,
+            a.DuracionMinutos,
+            a.TipoActividad,
+            a.Titulo,
+            a.Descripcion,
+            a.Solucion,
+            a.Estado,
+            a.TicketRelacionadoId,
+            a.TicketRelacionado?.Folio ?? a.FolioTicketExterno,
+            a.RequiereSeguimientoLunes,
+            a.DetalleSeguimiento,
+            a.FechaCreacionUtc
         );
 }
